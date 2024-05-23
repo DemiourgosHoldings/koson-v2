@@ -12,7 +12,12 @@ pub trait UnstakeFeeCalculator:
     + super::umbrella_interactor::UmbrellaInteractorModule
     + crate::storage::StorageModule
 {
-    fn calculate_unstake_fee_usdc(&self, unstake_total_score: BigUint) -> BigUint {
+    #[view(getUnstakeFeePerScoreKoson)]
+    fn get_unstake_fee_per_score_koson(&self) -> BigUint {
+        self.calculate_unstake_fee(BigUint::from(1u32))
+    }
+
+    fn calculate_unstake_fee(&self, unstake_total_score: BigUint) -> BigUint {
         let ouro_token_id = self.ouro_token_id().get();
         let wegld_token_id = self.wegld_token_id().get();
         let usdd_token_id = self.usdd_token_id().get();

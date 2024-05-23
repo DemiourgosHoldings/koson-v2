@@ -20,8 +20,24 @@ pub trait LandPlotStaking:
     + unstake_fee_calculator::umbrella_interactor::UmbrellaInteractorModule
 {
     #[init]
-    fn init(&self, land_plots_token_id: TokenIdentifier) {
+    fn init(
+        &self,
+        land_plots_token_id: TokenIdentifier,
+        ouro_token_id: TokenIdentifier,
+        usdd_token_id: TokenIdentifier,
+        usdc_token_id: TokenIdentifier,
+        wegld_token_id: TokenIdentifier,
+        koson_token_id: TokenIdentifier,
+        oracle_registry_address: ManagedAddress,
+    ) {
         self.land_plot_sft_token_id().set(&land_plots_token_id);
+        self.ouro_token_id().set(&ouro_token_id);
+        self.usdd_token_id().set(&usdd_token_id);
+        self.usdc_token_id().set(&usdc_token_id);
+        self.wegld_token_id().set(&wegld_token_id);
+        self.koson_token_id().set(&koson_token_id);
+        self.reward_token_id().set(&koson_token_id);
+        self.set_oracle_registry_address(oracle_registry_address);
     }
 
     #[payable("*")]
@@ -47,7 +63,7 @@ pub trait LandPlotStaking:
         let (mut payments, unstaked_score) =
             self.process_land_plot_unstake_request(&caller, &unstake_request.into_vec());
 
-        let expected_unstake_fee = self.calculate_unstake_fee_usdc(unstaked_score.clone());
+        let expected_unstake_fee = self.calculate_unstake_fee(unstaked_score.clone());
         self.require_payment_is_token_id(
             &payment,
             &self.koson_token_id().get(),
@@ -75,7 +91,7 @@ pub trait LandPlotStaking:
     }
 
     #[endpoint(claimRewards)]
-    fn claim_rewards(&self) {
+    fn claim_rewards(&self) -> EsdtTokenPayment {
         let caller = self.blockchain().get_caller();
 
         self.store_unclaimed_reward(&caller);
@@ -83,12 +99,12 @@ pub trait LandPlotStaking:
         let unclaimed_rewards = self.user_unclaimed_rewards(&caller).get();
 
         self.user_unclaimed_rewards(&caller).set(BigUint::zero());
-        self.send().direct_esdt(
-            &caller,
-            &self.reward_token_id().get(),
-            0u64,
-            &unclaimed_rewards,
-        );
+
+        let reward_token_id = self.reward_token_id().get();
+        self.send()
+            .direct_esdt(&caller, &reward_token_id, 0u64, &unclaimed_rewards);
+
+        EsdtTokenPayment::new(reward_token_id, 0u64, unclaimed_rewards)
     }
 
     #[payable("*")]
@@ -97,5 +113,15 @@ pub trait LandPlotStaking:
         let payment = self.call_value().single_esdt();
 
         self.handle_distribute_rewards(&payment);
+    }
+
+    #[view(getUserScore)]
+    fn get_user_score(&self, address: ManagedAddress) -> BigUint {
+        self.user_aggregated_land_plot_scores(&address).get()
+    }
+
+    #[view(getAggregatedScore)]
+    fn get_aggregated_score(&self) -> BigUint {
+        self.aggregated_land_plot_scores().get()
     }
 }

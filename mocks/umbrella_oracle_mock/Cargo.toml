@@ -1,12 +1,12 @@
 [package]
-name = "land-plot-staking"
+name = "umbrella-oracle-mock"
 version = "0.0.0"
 authors = ["you"]
 edition = "2021"
 publish = false
 
 [lib]
-path = "src/land_plot_staking.rs"
+path = "src/umbrella_oracle_mock.rs"
 
 [dependencies.multiversx-sc]
 version = "0.47.3"
@@ -16,12 +16,6 @@ num-bigint = "0.4"
 
 [dev-dependencies.multiversx-sc-scenario]
 version = "0.47.3"
-
-[dev-dependencies.umbrella-oracle-mock]
-path = "../mocks/umbrella_oracle_mock"
-
-[dependencies.dex-pair-sc]
-path = "../mocks/mock_dex_pair"
 
 [workspace]
 members = [

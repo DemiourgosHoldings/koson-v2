@@ -37,6 +37,10 @@ pub trait UmbrellaInteractorModule {
     }
 
     #[view(getUmbrellaRegistryAddress)]
+    fn get_umbrella_registry_addr(&self) -> ManagedAddress {
+        self.umbrella_oracle_registry_sc_address().get()
+    }
+
     #[storage_mapper("umbrella_oracle_sc_address")]
     fn umbrella_oracle_registry_sc_address(&self) -> SingleValueMapper<ManagedAddress>;
 

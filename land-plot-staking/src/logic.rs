@@ -10,6 +10,16 @@ multiversx_sc::derive_imports!();
 pub trait LogicModule:
     crate::storage::StorageModule + crate::reward_rate::RewardRateModule
 {
+    #[view(getTotalUnclaimedReward)]
+    fn get_total_unclaimed_reward(&self, caller: ManagedAddress) -> BigUint {
+        let unstored_reward_rate = self.get_unclaimed_reward_rate(&caller);
+        let user_score = self.user_aggregated_land_plot_scores(&caller).get();
+
+        let unstored_reward = &unstored_reward_rate * &user_score;
+
+        self.user_unclaimed_rewards(&caller).get() + unstored_reward
+    }
+
     fn store_unclaimed_reward(&self, caller: &ManagedAddress) {
         let unclaimed_reward_rate = self.update_user_reward_rate(caller);
         let user_score = self.user_aggregated_land_plot_scores(caller).get();
