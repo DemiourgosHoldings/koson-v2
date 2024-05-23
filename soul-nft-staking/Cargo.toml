@@ -1,0 +1,24 @@
+[package]
+name = "soul-nft-staking"
+version = "0.0.0"
+authors = ["you"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/soul_nft_staking.rs"
+
+[dependencies.multiversx-sc]
+version = "0.47.3"
+
+[dev-dependencies]
+num-bigint = "0.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.47.3"
+
+[workspace]
+members = [
+    ".",
+    "meta",
+]

@@ -1,0 +1,12 @@
+[package]
+name = "land-plot-staking-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.land-plot-staking]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.47.3"
+default-features = false
