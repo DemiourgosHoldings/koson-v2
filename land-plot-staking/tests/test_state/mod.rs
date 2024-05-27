@@ -10,6 +10,7 @@ pub const OWNER_ADDRESS_EXPR: &str = "address:OWNER_ADDRESS";
 pub const USER_1_ADDRESS_EXPR: &str = "address:USER_1_ADDRESS";
 
 pub const INVALID_ESDT_TOKEN_ID: &str = "INVALID-000000";
+pub const INVALID_NFT_TOKEN_ID: &str = "INVALID-abcdef";
 pub const NFT_STAKING_TOKEN_ID: &str = "STAKE-abcdef";
 pub const OURO_TOKEN_ID: &str = "OURO-123456";
 pub const USDD_TOKEN_ID: &str = "USDD-123456";

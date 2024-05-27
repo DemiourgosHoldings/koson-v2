@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           27
+// Endpoints:                           32
 // Async Callback (empty):               1
-// Total number of exported functions:  29
+// Total number of exported functions:  34
 
 #![no_std]
 #![allow(internal_features)]
@@ -24,6 +24,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         unstake => unstake_land_plots
         claimRewards => claim_rewards
         distributeRewards => distribute_rewards
+        getUserScore => get_user_score
+        getAggregatedScore => get_aggregated_score
         getOuroTokenId => ouro_token_id
         getUsddTokenId => usdd_token_id
         getUsdcTokenId => usdc_token_id
@@ -35,9 +37,12 @@ multiversx_sc_wasm_adapter::endpoints! {
         getAggregatedLandPlotScores => aggregated_land_plot_scores
         getUserAggregatedLandPlotScores => user_aggregated_land_plot_scores
         getUserUnclaimedRewards => user_unclaimed_rewards
+        getStakeEpoch => stake_epoch
+        getTotalUnclaimedReward => get_total_unclaimed_reward
         getUnclaimedRewardRate => get_unclaimed_reward_rate
-        getRewardRate => current_reward_rate
-        getLastClaimedRewardRate => last_claimed_reward_rate
+        getCurrentRewardRate => get_current_reward_rate
+        getLastClaimedRewardRate => get_last_claimed_reward_rate
+        getUnstakeFeePerScoreKoson => get_unstake_fee_per_score_koson
         setPairInfo => set_pair_info
         removePairInfo => remove_pair_info
         getSwapPairAddress => swap_pair_address
@@ -45,7 +50,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         setUmbrellaPriceFeed => set_price_feed
         getUmbrellaPrice => get_oracle_price
         getUmbrellaFeedsAddress => get_feeds_address
-        getUmbrellaRegistryAddress => umbrella_oracle_registry_sc_address
+        getUmbrellaRegistryAddress => get_umbrella_registry_addr
         getTokenIdentifierFeedMapping => token_identifier_feed_mapping
     )
 }

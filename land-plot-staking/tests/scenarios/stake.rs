@@ -1,7 +1,8 @@
-use land_plot_staking::constants::score::LAND_PLOT_SCORES;
+use land_plot_staking::constants::{errors::ERR_NOT_A_LAND_PLOT, score::LAND_PLOT_SCORES};
 
 use crate::test_state::{
-    KosonV2NftStakingContractState, NFT_STAKING_TOKEN_ID, OWNER_ADDRESS_EXPR, USER_1_ADDRESS_EXPR,
+    KosonV2NftStakingContractState, INVALID_NFT_TOKEN_ID, NFT_STAKING_TOKEN_ID, OWNER_ADDRESS_EXPR,
+    USER_1_ADDRESS_EXPR,
 };
 
 #[test]
@@ -27,6 +28,25 @@ fn stake_one_of_each() {
         (NFT_STAKING_TOKEN_ID, 3, 1),
         (NFT_STAKING_TOKEN_ID, 4, 1),
         (NFT_STAKING_TOKEN_ID, 5, 1),
+    ];
+
+    let mut state = KosonV2NftStakingContractState::new();
+    state
+        .deploy()
+        .init()
+        .stake_many(USER_1_ADDRESS_EXPR, stake_transfer, set_score);
+}
+
+#[test]
+fn stake_many_of_each() {
+    let quantity = 100;
+    let set_score = LAND_PLOT_SCORES.iter().sum::<u64>() * quantity;
+    let stake_transfer = vec![
+        (NFT_STAKING_TOKEN_ID, 1, quantity),
+        (NFT_STAKING_TOKEN_ID, 2, quantity),
+        (NFT_STAKING_TOKEN_ID, 3, quantity),
+        (NFT_STAKING_TOKEN_ID, 4, quantity),
+        (NFT_STAKING_TOKEN_ID, 5, quantity),
     ];
 
     let mut state = KosonV2NftStakingContractState::new();
@@ -129,4 +149,16 @@ fn stake_updates_stake_epoch() {
         .check_stake_epoch(USER_1_ADDRESS_EXPR, 1, 0)
         .stake_many(USER_1_ADDRESS_EXPR, stake_transfer, LAND_PLOT_SCORES[0])
         .check_stake_epoch(USER_1_ADDRESS_EXPR, 1, 1);
+}
+
+#[test]
+fn stake_invalid_token_fails() {
+    let stake_transfer = vec![(INVALID_NFT_TOKEN_ID, 1, 1)];
+
+    let mut state = KosonV2NftStakingContractState::new();
+    state.deploy().init().stake_many_expect_err(
+        USER_1_ADDRESS_EXPR,
+        stake_transfer,
+        ERR_NOT_A_LAND_PLOT,
+    );
 }

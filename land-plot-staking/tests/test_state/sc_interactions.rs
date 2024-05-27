@@ -1,9 +1,9 @@
 use super::{
     world, DexPairContract, KosonV2NftStakingContract, KosonV2NftStakingContractState,
     OracleFeedsContract, DEX_SWAP_SC_ADDRESS_EXPR, EGLD_PRICE_FEED_NAME, INVALID_ESDT_TOKEN_ID,
-    KOSON_TOKEN_ID, NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID, ORACLE_SC_ADDRESS_EXPR,
-    OURO_TOKEN_ID, OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID, USER_1_ADDRESS_EXPR,
-    WEGLD_TOKEN_ID,
+    INVALID_NFT_TOKEN_ID, KOSON_TOKEN_ID, NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID,
+    ORACLE_SC_ADDRESS_EXPR, OURO_TOKEN_ID, OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID,
+    USER_1_ADDRESS_EXPR, WEGLD_TOKEN_ID,
 };
 
 use multiversx_sc::types::{Address, EsdtTokenPayment, MultiValueManagedVec};
@@ -29,6 +29,7 @@ impl KosonV2NftStakingContractState {
         world.set_state_step(
             SetStateStep::new()
                 .new_token_identifier(format!("str:{}", INVALID_ESDT_TOKEN_ID))
+                .new_token_identifier(format!("str:{}", INVALID_NFT_TOKEN_ID))
                 .new_token_identifier(format!("str:{}", NFT_STAKING_TOKEN_ID))
                 .new_token_identifier(format!("str:{}", OURO_TOKEN_ID))
                 .new_token_identifier(format!("str:{}", USDD_TOKEN_ID))
@@ -76,6 +77,12 @@ impl KosonV2NftStakingContractState {
                             5,
                             "10000",
                             Option::Some(""),
+                        )
+                        .esdt_nft_balance(
+                            format!("str:{}", INVALID_NFT_TOKEN_ID).as_str(),
+                            1,
+                            "10000",
+                            Option::Some(""),
                         ),
                 )
                 .new_address(OWNER_ADDRESS_EXPR, 1, NFT_STAKING_SC_ADDRESS_EXPR)
@@ -118,6 +125,12 @@ impl KosonV2NftStakingContractState {
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             5,
+                            "10000",
+                            Option::Some(""),
+                        )
+                        .esdt_nft_balance(
+                            format!("str:{}", INVALID_NFT_TOKEN_ID).as_str(),
+                            1,
                             "10000",
                             Option::Some(""),
                         ),
@@ -237,7 +250,7 @@ impl KosonV2NftStakingContractState {
                 .from(address_from)
                 .multi_esdt_transfer(Self::get_txesdt_vec(payments))
                 .call(self.contract.stake_land_plots())
-                .expect(TxExpect::user_error(err_msg)),
+                .expect(TxExpect::user_error(format!("str:{}", err_msg))),
         );
 
         self
@@ -279,7 +292,7 @@ impl KosonV2NftStakingContractState {
                     self.contract
                         .unstake_land_plots(Self::get_unstake_request(unstake_items)),
                 )
-                .expect(TxExpect::user_error(err_msg)),
+                .expect(TxExpect::user_error(format!("str:{}", err_msg))),
         );
 
         self
@@ -305,7 +318,7 @@ impl KosonV2NftStakingContractState {
             ScCallStep::new()
                 .from(address_from)
                 .call(self.contract.claim_rewards())
-                .expect(TxExpect::user_error(err_msg)),
+                .expect(TxExpect::user_error(format!("str:{}", err_msg))),
         );
 
         self
@@ -339,7 +352,7 @@ impl KosonV2NftStakingContractState {
                 .from(address_from)
                 .esdt_transfer(token_id, 0, amount)
                 .call(self.contract.distribute_rewards())
-                .expect(TxExpect::user_error(err_msg)),
+                .expect(TxExpect::user_error(format!("str:{}", err_msg))),
         );
 
         self
