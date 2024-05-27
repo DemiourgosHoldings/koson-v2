@@ -1,9 +1,5 @@
 use super::{
-    world, DexPairContract, KosonV2NftStakingContract, KosonV2NftStakingContractState,
-    OracleFeedsContract, DEX_SWAP_SC_ADDRESS_EXPR, EGLD_PRICE_FEED_NAME, INVALID_ESDT_TOKEN_ID,
-    INVALID_NFT_TOKEN_ID, KOSON_TOKEN_ID, NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID,
-    ORACLE_SC_ADDRESS_EXPR, OURO_TOKEN_ID, OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID,
-    USER_1_ADDRESS_EXPR, WEGLD_TOKEN_ID,
+    world, DexPairContract, KosonV2NftStakingContract, KosonV2NftStakingContractState, OracleFeedsContract, DEX_SWAP_SC_ADDRESS_EXPR, EGLD_PRICE_FEED_NAME, INITIAL_ESDT_BALANCE, INVALID_ESDT_TOKEN_ID, INVALID_NFT_TOKEN_ID, KOSON_TOKEN_ID, NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID, ORACLE_SC_ADDRESS_EXPR, OURO_TOKEN_ID, OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID, USER_1_ADDRESS_EXPR, WEGLD_TOKEN_ID
 };
 
 use multiversx_sc::types::{Address, EsdtTokenPayment, MultiValueManagedVec};
@@ -42,11 +38,11 @@ impl KosonV2NftStakingContractState {
                         .nonce(1)
                         .esdt_balance(
                             format!("str:{}", INVALID_ESDT_TOKEN_ID).as_str(),
-                            "1000000000000000000000",
+                            INITIAL_ESDT_BALANCE,
                         )
                         .esdt_balance(
                             format!("str:{}", KOSON_TOKEN_ID).as_str(),
-                            "1000000000000000000000",
+                            INITIAL_ESDT_BALANCE,
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
@@ -92,11 +88,11 @@ impl KosonV2NftStakingContractState {
                         .nonce(1)
                         .esdt_balance(
                             format!("str:{}", INVALID_ESDT_TOKEN_ID).as_str(),
-                            "1000000000000000000000",
+                            INITIAL_ESDT_BALANCE,
                         )
                         .esdt_balance(
                             format!("str:{}", KOSON_TOKEN_ID).as_str(),
-                            "1000000000000000000000",
+                            INITIAL_ESDT_BALANCE,
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),

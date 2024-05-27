@@ -1,8 +1,8 @@
 use land_plot_staking::constants::{errors::ERR_NOTHING_TO_CLAIM, score::LAND_PLOT_SCORES};
 
 use crate::test_state::{
-    KosonV2NftStakingContractState, KOSON_TOKEN_ID, NFT_STAKING_TOKEN_ID, OWNER_ADDRESS_EXPR,
-    USER_1_ADDRESS_EXPR,
+    KosonV2NftStakingContractState, INITIAL_ESDT_BALANCE, KOSON_TOKEN_ID, NFT_STAKING_TOKEN_ID,
+    OWNER_ADDRESS_EXPR, USER_1_ADDRESS_EXPR,
 };
 
 const STAKE_TRANSFER: [(&str, u64, u64); 1] = [(NFT_STAKING_TOKEN_ID, 1u64, 1u64)];
@@ -67,7 +67,12 @@ fn double_claim_reward_fails() {
             LAND_PLOT_SCORES[0],
         )
         .claim_rewards(USER_1_ADDRESS_EXPR, LAND_PLOT_SCORES[0])
-        .check_pending_reward(USER_1_ADDRESS_EXPR, 0);
+        .claim_rewards_expect_err(USER_1_ADDRESS_EXPR, ERR_NOTHING_TO_CLAIM)
+        .check_user_balance(
+            USER_1_ADDRESS_EXPR,
+            KOSON_TOKEN_ID,
+            INITIAL_ESDT_BALANCE + LAND_PLOT_SCORES[0] as u128,
+        );
 }
 
 #[test]
