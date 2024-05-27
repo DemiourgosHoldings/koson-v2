@@ -46,4 +46,8 @@ pub trait StorageModule {
     #[view(getUserUnclaimedRewards)]
     #[storage_mapper("user_unclaimed_rewards")]
     fn user_unclaimed_rewards(&self, user: &ManagedAddress) -> SingleValueMapper<BigUint>;
+
+    #[view(getStakeEpochStorage)]
+    #[storage_mapper("stake_epoch")]
+    fn stake_epoch(&self, user: &ManagedAddress, nonce: u64) -> SingleValueMapper<u64>;
 }

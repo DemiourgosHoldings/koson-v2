@@ -20,7 +20,10 @@ pub trait LandPlotStaking:
     + unstake_fee_calculator::umbrella_interactor::UmbrellaInteractorModule
 {
     #[init]
-    fn init(
+    fn init(&self) {}
+
+    #[endpoint(initConfig)]
+    fn init_config(
         &self,
         land_plots_token_id: TokenIdentifier,
         ouro_token_id: TokenIdentifier,
@@ -60,10 +63,10 @@ pub trait LandPlotStaking:
         let payment = self.call_value().single_esdt();
 
         self.store_unclaimed_reward(&caller);
-        let (mut payments, unstaked_score) =
+        let (mut payments, unstaked_score, fee_in_usd) =
             self.process_land_plot_unstake_request(&caller, &unstake_request.into_vec());
 
-        let expected_unstake_fee = self.calculate_unstake_fee(unstaked_score.clone());
+        let expected_unstake_fee = self.calculate_unstake_fee(fee_in_usd);
         self.require_payment_is_token_id(
             &payment,
             &self.koson_token_id().get(),
@@ -123,5 +126,10 @@ pub trait LandPlotStaking:
     #[view(getAggregatedScore)]
     fn get_aggregated_score(&self) -> BigUint {
         self.aggregated_land_plot_scores().get()
+    }
+
+    #[view(getStakeEpoch)]
+    fn get_stake_epoch(&self, user: ManagedAddress, nonce: u64) -> u64 {
+        self.stake_epoch(&user, nonce).get()
     }
 }

@@ -8,7 +8,11 @@ multiversx_sc::derive_imports!();
 
 #[multiversx_sc::module]
 pub trait LogicModule:
-    crate::storage::StorageModule + crate::reward_rate::RewardRateModule
+    crate::storage::StorageModule
+    + crate::reward_rate::RewardRateModule
+    + crate::unstake_fee_calculator::calculator::UnstakeFeeCalculator
+    + crate::unstake_fee_calculator::dex_pair_interactor::DexPairInteractorModule
+    + crate::unstake_fee_calculator::umbrella_interactor::UmbrellaInteractorModule
 {
     #[view(getTotalUnclaimedReward)]
     fn get_total_unclaimed_reward(&self, caller: ManagedAddress) -> BigUint {
@@ -35,6 +39,7 @@ pub trait LogicModule:
     ) -> BigUint {
         let land_plot_sft_token_id = self.land_plot_sft_token_id().get();
         let mut payments_score = BigUint::zero();
+        let block_epoch = self.blockchain().get_block_epoch();
 
         for payment in payments.iter() {
             self.require_payment_is_token_id(
@@ -48,6 +53,9 @@ pub trait LogicModule:
 
             self.staked_land_plots(caller, payment.token_nonce)
                 .update(|old_amount| *old_amount += &payment.amount);
+
+            self.stake_epoch(caller, payment.token_nonce)
+                .set(block_epoch);
 
             payments_score += payment_score;
         }
@@ -64,27 +72,35 @@ pub trait LogicModule:
         &self,
         caller: &ManagedAddress,
         unstake_request: &ManagedVec<UnstakeRequest<Self::Api>>,
-    ) -> (ManagedVec<EsdtTokenPayment>, BigUint) {
+    ) -> (ManagedVec<EsdtTokenPayment>, BigUint, BigUint) {
+        let block_epoch = self.blockchain().get_block_epoch();
         let land_plot_sft_token_id = self.land_plot_sft_token_id().get();
         let mut unstaked_payments = ManagedVec::new();
         let mut total_unstake_amount = BigUint::zero();
+        let mut total_usd_fee = BigUint::zero();
 
         for request in unstake_request.iter() {
-            let payment = request.amount.clone();
-            let payment_nonce = request.nonce;
+            let asset_score = LAND_PLOT_SCORES[request.nonce as usize - 1];
 
-            let staked_amount = self.staked_land_plots(caller, payment_nonce).get();
-            require!(staked_amount >= payment, ERR_NOT_ENOUGH_STAKED);
+            let stake_epoch = self.stake_epoch(caller, request.nonce).get();
+            let staked_amount = self.staked_land_plots(caller, request.nonce).get();
 
-            self.staked_land_plots(caller, payment_nonce)
-                .update(|old_amount| *old_amount -= &payment);
+            require!(staked_amount >= request.amount, ERR_NOT_ENOUGH_STAKED);
 
-            total_unstake_amount += &payment;
+            self.staked_land_plots(caller, request.nonce)
+                .update(|old_amount| *old_amount -= &request.amount);
+
+            let nonce_unstake_score = &BigUint::from(asset_score) * &request.amount;
+            let total_nonce_fee =
+                self.get_unstake_fee(&nonce_unstake_score, stake_epoch, block_epoch);
+
+            total_unstake_amount += nonce_unstake_score;
+            total_usd_fee += total_nonce_fee;
 
             unstaked_payments.push(EsdtTokenPayment::new(
                 land_plot_sft_token_id.clone(),
-                payment_nonce,
-                payment,
+                request.nonce,
+                request.amount,
             ));
         }
 
@@ -93,7 +109,7 @@ pub trait LogicModule:
         self.aggregated_land_plot_scores()
             .update(|old_score| *old_score -= &total_unstake_amount);
 
-        (unstaked_payments, total_unstake_amount)
+        (unstaked_payments, total_unstake_amount, total_usd_fee)
     }
 
     fn handle_distribute_rewards(&self, payment: &EsdtTokenPayment) {

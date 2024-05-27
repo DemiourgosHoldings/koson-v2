@@ -5,6 +5,7 @@ multiversx_sc::imports!();
 pub const UNSTAKE_FEE_PER_SCORE_USD: u64 = 100_000_000_000_000_000; // 10^17
 pub const ONE_TOKEN: u64 = 1_000_000_000_000_000_000; // 10^18
 pub const ONE_USDC: u64 = 1_000_000; // 10^6
+pub const MAX_FEEABLE_EPOCH: u64 = 25;
 
 #[multiversx_sc::module]
 pub trait UnstakeFeeCalculator:
@@ -17,7 +18,7 @@ pub trait UnstakeFeeCalculator:
         self.calculate_unstake_fee(BigUint::from(1u32))
     }
 
-    fn calculate_unstake_fee(&self, unstake_total_score: BigUint) -> BigUint {
+    fn calculate_unstake_fee(&self, unstake_fee_usd: BigUint) -> BigUint {
         let ouro_token_id = self.ouro_token_id().get();
         let wegld_token_id = self.wegld_token_id().get();
         let usdd_token_id = self.usdd_token_id().get();
@@ -35,11 +36,10 @@ pub trait UnstakeFeeCalculator:
             &usdc_token_id,
             &wegld_token_id,
         );
-        let unstake_fee_per_score = BigUint::from(UNSTAKE_FEE_PER_SCORE_USD);
 
         let koson_usd_price = koson_ouro_price * median_ouro_usd_price / BigUint::from(ONE_TOKEN);
 
-        unstake_total_score * unstake_fee_per_score / koson_usd_price
+        unstake_fee_usd / koson_usd_price
     }
 
     fn get_median_ouro_price(
@@ -71,5 +71,17 @@ pub trait UnstakeFeeCalculator:
             self.get_oracle_price(wegld_token_id) * ONE_TOKEN / ORACLE_PRICE_DENOMINATION;
 
         ouro_egld_price * egld_oracle_price / ONE_TOKEN
+    }
+
+    fn get_epochs_left(&self, epoch_t0: u64, epoch_t1: u64) -> u64 {
+        match epoch_t1 - epoch_t0 {
+            MAX_FEEABLE_EPOCH.. => 0,
+            epoch_delta => MAX_FEEABLE_EPOCH - epoch_delta,
+        }
+    }
+
+    fn get_unstake_fee(&self, score: &BigUint, epoch_t0: u64, epoch_t1: u64) -> BigUint {
+        let entire_fee = score * UNSTAKE_FEE_PER_SCORE_USD;
+        entire_fee * self.get_epochs_left(epoch_t0, epoch_t1) / MAX_FEEABLE_EPOCH
     }
 }
