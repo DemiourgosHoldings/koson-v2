@@ -29,7 +29,7 @@ pub trait LogicModule:
         let user_score = self.user_aggregated_land_plot_scores(caller).get();
 
         self.user_unclaimed_rewards(caller)
-            .set(&unclaimed_reward_rate * &user_score);
+            .update(|unclaimed_rewards| *unclaimed_rewards += &unclaimed_reward_rate * &user_score);
     }
 
     fn process_land_plot_stake_payment(
