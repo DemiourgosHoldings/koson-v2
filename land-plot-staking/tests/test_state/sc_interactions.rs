@@ -2,9 +2,10 @@ use super::{
     world, DexPairContract, KosonV2NftStakingContract, KosonV2NftStakingContractState,
     OracleFeedsContract, DEX_OURO_KOSON_PAIR_ADDRESS_EXPR, DEX_OURO_USDC_PAIR_ADDRESS_EXPR,
     DEX_OURO_USDD_PAIR_ADDRESS_EXPR, DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR, EGLD_PRICE_FEED_NAME,
-    INITIAL_ESDT_BALANCE, INVALID_ESDT_TOKEN_ID, INVALID_NFT_TOKEN_ID, KOSON_TOKEN_ID,
-    NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID, ORACLE_SC_ADDRESS_EXPR, OURO_TOKEN_ID,
-    OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID, USER_1_ADDRESS_EXPR, WEGLD_TOKEN_ID,
+    INITIAL_ESDT_BALANCE, INITIAL_SFT_BALANCE, INVALID_ESDT_TOKEN_ID, INVALID_NFT_TOKEN_ID,
+    KOSON_TOKEN_ID, NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID, ORACLE_SC_ADDRESS_EXPR,
+    OURO_TOKEN_ID, OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID, USER_1_ADDRESS_EXPR,
+    WEGLD_TOKEN_ID,
 };
 
 use multiversx_sc::types::{Address, BigUint, EsdtTokenPayment, MultiValueManagedVec};
@@ -57,37 +58,37 @@ impl KosonV2NftStakingContractState {
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             1,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             2,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             3,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             4,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             5,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", INVALID_NFT_TOKEN_ID).as_str(),
                             1,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         ),
                 )
@@ -107,37 +108,37 @@ impl KosonV2NftStakingContractState {
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             1,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             2,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             3,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             4,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", NFT_STAKING_TOKEN_ID).as_str(),
                             5,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         )
                         .esdt_nft_balance(
                             format!("str:{}", INVALID_NFT_TOKEN_ID).as_str(),
                             1,
-                            "10000",
+                            INITIAL_SFT_BALANCE,
                             Option::Some(""),
                         ),
                 ),
@@ -346,7 +347,7 @@ impl KosonV2NftStakingContractState {
         self.world.sc_call(
             ScCallStep::new()
                 .from(address_from)
-                .esdt_transfer(fee_payment.0, 0u64, fee_payment.1)
+                .esdt_transfer(format!("str:{}", fee_payment.0), 0u64, fee_payment.1)
                 .call(
                     self.contract
                         .unstake_land_plots(Self::get_unstake_request(unstake_items)),
@@ -367,7 +368,7 @@ impl KosonV2NftStakingContractState {
         self.world.sc_call(
             ScCallStep::new()
                 .from(address_from)
-                .esdt_transfer(fee_payment.0, 0u64, fee_payment.1)
+                .esdt_transfer(format!("str:{}", fee_payment.0), 0u64, fee_payment.1)
                 .call(
                     self.contract
                         .unstake_land_plots(Self::get_unstake_request(unstake_items)),
@@ -564,6 +565,27 @@ impl KosonV2NftStakingContractState {
             .check_state_step(CheckStateStep::new().put_account(
                 address,
                 CheckAccount::new().esdt_balance(format!("str:{}", token).as_str(), amount),
+            ));
+
+        self
+    }
+
+    pub fn check_user_nft_balance(
+        &mut self,
+        address: &str,
+        token: &str,
+        nonce: u64,
+        amount: u128,
+    ) -> &mut Self {
+        self.world
+            .check_state_step(CheckStateStep::new().put_account(
+                address,
+                CheckAccount::new().esdt_nft_balance_and_attributes(
+                    format!("str:{}", token).as_str(),
+                    nonce,
+                    amount,
+                    Option::Some(""),
+                ),
             ));
 
         self

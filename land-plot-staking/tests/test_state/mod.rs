@@ -26,6 +26,7 @@ pub const KOSON_TOKEN_ID: &str = "KOSON-123456";
 pub const EGLD_PRICE_FEED_NAME: &[u8] = b"EGLD_USD_PRICE_FEED";
 
 pub const INITIAL_ESDT_BALANCE: u128 = 1000000000000000000000u128;
+pub const INITIAL_SFT_BALANCE: u128 = 10000;
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();

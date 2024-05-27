@@ -15,7 +15,7 @@ pub trait UnstakeFeeCalculator:
 {
     #[view(getUnstakeFeePerScoreKoson)]
     fn get_unstake_fee_per_score_koson(&self) -> BigUint {
-        self.calculate_unstake_fee(BigUint::from(1u32))
+        self.calculate_unstake_fee(BigUint::from(UNSTAKE_FEE_PER_SCORE_USD))
     }
 
     fn calculate_unstake_fee(&self, unstake_fee_usd: BigUint) -> BigUint {
@@ -37,9 +37,9 @@ pub trait UnstakeFeeCalculator:
             &wegld_token_id,
         );
 
-        let koson_usd_price = koson_ouro_price * median_ouro_usd_price / BigUint::from(ONE_TOKEN);
+        let koson_usd_price = &koson_ouro_price * &median_ouro_usd_price / BigUint::from(ONE_TOKEN);
 
-        unstake_fee_usd / koson_usd_price
+        unstake_fee_usd * koson_usd_price / BigUint::from(ONE_TOKEN)
     }
 
     fn get_median_ouro_price(
