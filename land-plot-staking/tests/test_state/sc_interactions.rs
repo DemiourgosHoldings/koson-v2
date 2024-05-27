@@ -333,7 +333,7 @@ impl KosonV2NftStakingContractState {
         self.world.sc_call(
             ScCallStep::new()
                 .from(address_from)
-                .esdt_transfer(token_id, 0, amount)
+                .esdt_transfer(format!("str:{}", token_id), 0, amount)
                 .call(self.contract.distribute_rewards()),
         );
 
@@ -350,7 +350,7 @@ impl KosonV2NftStakingContractState {
         self.world.sc_call(
             ScCallStep::new()
                 .from(address_from)
-                .esdt_transfer(token_id, 0, amount)
+                .esdt_transfer(format!("str:{}", token_id), 0, amount)
                 .call(self.contract.distribute_rewards())
                 .expect(TxExpect::user_error(format!("str:{}", err_msg))),
         );
