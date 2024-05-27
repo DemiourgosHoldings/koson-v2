@@ -1,4 +1,4 @@
-use land_plot_staking::constants::score::LAND_PLOT_SCORES;
+use land_plot_staking::constants::{errors::ERR_NOTHING_TO_CLAIM, score::LAND_PLOT_SCORES};
 
 use crate::test_state::{
     KosonV2NftStakingContractState, KOSON_TOKEN_ID, NFT_STAKING_TOKEN_ID, OWNER_ADDRESS_EXPR,
@@ -68,6 +68,15 @@ fn double_claim_reward_fails() {
         )
         .claim_rewards(USER_1_ADDRESS_EXPR, LAND_PLOT_SCORES[0])
         .check_pending_reward(USER_1_ADDRESS_EXPR, 0);
+}
+
+#[test]
+fn claiming_no_rewards_fails() {
+    let mut state = KosonV2NftStakingContractState::new();
+    state
+        .deploy()
+        .init()
+        .claim_rewards_expect_err(USER_1_ADDRESS_EXPR, ERR_NOTHING_TO_CLAIM);
 }
 
 fn apply_scenario_setup(

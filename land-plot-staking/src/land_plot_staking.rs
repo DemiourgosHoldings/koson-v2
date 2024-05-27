@@ -1,5 +1,6 @@
 #![no_std]
 
+use constants::errors::ERR_NOTHING_TO_CLAIM;
 use logic::UnstakeRequest;
 
 multiversx_sc::imports!();
@@ -100,6 +101,7 @@ pub trait LandPlotStaking:
         self.store_unclaimed_reward(&caller);
 
         let unclaimed_rewards = self.user_unclaimed_rewards(&caller).get();
+        require!(unclaimed_rewards > 0, ERR_NOTHING_TO_CLAIM);
 
         self.user_unclaimed_rewards(&caller).set(BigUint::zero());
 
