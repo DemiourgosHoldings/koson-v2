@@ -3,7 +3,7 @@ use test_state::{
     KosonV2NftStakingContractState, EGLD_PRICE_FEED_NAME, ORACLE_SC_ADDRESS_EXPR, WEGLD_TOKEN_ID,
 };
 
-// mod scenarios;
+mod scenarios;
 mod test_state;
 
 #[test]

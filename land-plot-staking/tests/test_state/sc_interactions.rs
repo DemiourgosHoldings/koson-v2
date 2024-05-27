@@ -140,22 +140,12 @@ impl KosonV2NftStakingContractState {
     }
 
     pub fn deploy(&mut self) -> &mut Self {
-        let oracle_registry_address = AddressValue::from(ORACLE_SC_ADDRESS_EXPR).to_address();
-
         let code = self.world.code_expression(NFT_STAKING_SC_ADDRESS_EXPR);
         self.world.sc_deploy(
             ScDeployStep::new()
                 .from(OWNER_ADDRESS_EXPR)
                 .code(code.clone())
-                .call(self.contract.init(
-                    managed_token_id!(NFT_STAKING_TOKEN_ID),
-                    managed_token_id!(OURO_TOKEN_ID),
-                    managed_token_id!(USDD_TOKEN_ID),
-                    managed_token_id!(USDC_TOKEN_ID),
-                    managed_token_id!(WEGLD_TOKEN_ID),
-                    managed_token_id!(KOSON_TOKEN_ID),
-                    managed_address!(&oracle_registry_address),
-                )),
+                .call(self.contract.init()),
         );
 
         let acc = Account::new().owner(OWNER_ADDRESS_EXPR).code(code);
@@ -190,13 +180,6 @@ impl KosonV2NftStakingContractState {
     }
 
     pub fn init(&mut self) -> &mut Self {
-        self.world
-            .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
-                self.contract.set_oracle_registry_address(managed_address!(
-                    &AddressValue::from(ORACLE_SC_ADDRESS_EXPR).to_address()
-                )),
-            ));
-
         let feeds = vec![(WEGLD_TOKEN_ID, EGLD_PRICE_FEED_NAME)];
 
         for (token_id, feed_name) in feeds {
@@ -207,6 +190,21 @@ impl KosonV2NftStakingContractState {
                 ),
             );
         }
+
+        self.world
+            .sc_call(
+                ScCallStep::new()
+                    .from(OWNER_ADDRESS_EXPR)
+                    .call(self.contract.init_config(
+                        managed_token_id!(NFT_STAKING_TOKEN_ID),
+                        managed_token_id!(OURO_TOKEN_ID),
+                        managed_token_id!(USDD_TOKEN_ID),
+                        managed_token_id!(USDC_TOKEN_ID),
+                        managed_token_id!(WEGLD_TOKEN_ID),
+                        managed_token_id!(KOSON_TOKEN_ID),
+                        managed_address!(&AddressValue::from(ORACLE_SC_ADDRESS_EXPR).to_address()),
+                    )),
+            );
 
         self
     }
@@ -440,12 +438,37 @@ impl KosonV2NftStakingContractState {
         self
     }
 
+    pub fn check_stake_epoch(
+        &mut self,
+        address: &str,
+        nonce: u64,
+        expected_epoch: u64,
+    ) -> &mut Self {
+        self.world.sc_query(
+            ScQueryStep::new()
+                .call(self.contract.get_stake_epoch(
+                    managed_address!(&AddressValue::from(address).to_address()),
+                    nonce,
+                ))
+                .expect_value(expected_epoch),
+        );
+
+        self
+    }
+
     pub fn check_user_balance(&mut self, address: &str, token: &str, amount: u128) -> &mut Self {
         self.world
             .check_state_step(CheckStateStep::new().put_account(
                 address,
                 CheckAccount::new().esdt_balance(format!("str:{}", token).as_str(), amount),
             ));
+
+        self
+    }
+
+    pub fn set_block_epoch(&mut self, target_epoch: u64) -> &mut Self {
+        self.world
+            .set_state_step(SetStateStep::new().block_epoch(target_epoch));
 
         self
     }
