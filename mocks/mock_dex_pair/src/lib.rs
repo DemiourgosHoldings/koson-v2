@@ -10,7 +10,7 @@ pub trait DexPairScContract {
 
     #[view(getEquivalent)]
     fn get_equivalent(&self, token_in: TokenIdentifier, amount_in: BigUint) -> BigUint {
-        amount_in * self.rates(token_in).get()
+        amount_in * self.rates(token_in).get() / BigUint::from(1_000_000_000_000_000_000u64)
     }
 
     #[payable("*")]
