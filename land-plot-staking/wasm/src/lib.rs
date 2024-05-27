@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           32
+// Endpoints:                           36
 // Async Callback (empty):               1
-// Total number of exported functions:  34
+// Total number of exported functions:  38
 
 #![no_std]
 #![allow(internal_features)]
@@ -20,12 +20,14 @@ multiversx_sc_wasm_adapter::endpoints! {
     land_plot_staking
     (
         init => init
+        initConfig => init_config
         stake => stake_land_plots
         unstake => unstake_land_plots
         claimRewards => claim_rewards
         distributeRewards => distribute_rewards
         getUserScore => get_user_score
         getAggregatedScore => get_aggregated_score
+        getStakeEpoch => get_stake_epoch
         getOuroTokenId => ouro_token_id
         getUsddTokenId => usdd_token_id
         getUsdcTokenId => usdc_token_id
@@ -37,7 +39,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getAggregatedLandPlotScores => aggregated_land_plot_scores
         getUserAggregatedLandPlotScores => user_aggregated_land_plot_scores
         getUserUnclaimedRewards => user_unclaimed_rewards
-        getStakeEpoch => stake_epoch
+        getStakeEpochStorage => stake_epoch
         getTotalUnclaimedReward => get_total_unclaimed_reward
         getUnclaimedRewardRate => get_unclaimed_reward_rate
         getCurrentRewardRate => get_current_reward_rate
@@ -45,6 +47,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         getUnstakeFeePerScoreKoson => get_unstake_fee_per_score_koson
         setPairInfo => set_pair_info
         removePairInfo => remove_pair_info
+        getEquivalentVestaDex => get_equivalent_vesta_dex
+        getEquivalentXExchange => get_equivalent_xexchange
         getSwapPairAddress => swap_pair_address
         setUmbrellaRegistryAddress => set_oracle_registry_address
         setUmbrellaPriceFeed => set_price_feed

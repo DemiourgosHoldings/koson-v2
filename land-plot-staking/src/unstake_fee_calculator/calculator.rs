@@ -66,7 +66,7 @@ pub trait UnstakeFeeCalculator:
         wegld_token_id: &TokenIdentifier,
     ) -> BigUint {
         let ouro_egld_price =
-            self.get_equivalent_vesta_dex(ouro_token_id, wegld_token_id, &BigUint::from(ONE_TOKEN));
+            self.get_equivalent_xexchange(ouro_token_id, wegld_token_id, &BigUint::from(ONE_TOKEN));
         let egld_oracle_price =
             self.get_oracle_price(wegld_token_id) * ONE_TOKEN / ORACLE_PRICE_DENOMINATION;
 

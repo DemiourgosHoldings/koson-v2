@@ -5,7 +5,12 @@ pub mod sc_interactions;
 
 pub const NFT_STAKING_SC_ADDRESS_EXPR: &str = "sc:KOSON_V2_NFT_STAKING_SC_ADDRESS";
 pub const ORACLE_SC_ADDRESS_EXPR: &str = "sc:ORACLE_FEEDS";
-pub const DEX_SWAP_SC_ADDRESS_EXPR: &str = "sc:DEX_SWAP_SC_ADDRESS";
+
+pub const DEX_OURO_KOSON_PAIR_ADDRESS_EXPR: &str = "sc:DEX_OURO_KOSON_PAIR_ADDRESS";
+pub const DEX_OURO_USDD_PAIR_ADDRESS_EXPR: &str = "sc:DEX_OURO_USDD_PAIR_ADDRESS";
+pub const DEX_OURO_USDC_PAIR_ADDRESS_EXPR: &str = "sc:DEX_OURO_USDC_PAIR_ADDRESS";
+pub const DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR: &str = "sc:DEX_OURO_WEGLD_PAIR_ADDRESS";
+
 pub const OWNER_ADDRESS_EXPR: &str = "address:OWNER_ADDRESS";
 pub const USER_1_ADDRESS_EXPR: &str = "address:USER_1_ADDRESS";
 
@@ -36,7 +41,22 @@ fn world() -> ScenarioWorld {
         umbrella_oracle_mock::ContractBuilder,
     );
 
-    blockchain.register_contract(DEX_SWAP_SC_ADDRESS_EXPR, dex_pair_sc::ContractBuilder);
+    blockchain.register_contract(
+        DEX_OURO_KOSON_PAIR_ADDRESS_EXPR,
+        dex_pair_sc::ContractBuilder,
+    );
+    blockchain.register_contract(
+        DEX_OURO_USDD_PAIR_ADDRESS_EXPR,
+        dex_pair_sc::ContractBuilder,
+    );
+    blockchain.register_contract(
+        DEX_OURO_USDC_PAIR_ADDRESS_EXPR,
+        dex_pair_sc::ContractBuilder,
+    );
+    blockchain.register_contract(
+        DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR,
+        dex_pair_sc::ContractBuilder,
+    );
 
     blockchain
 }
@@ -49,6 +69,9 @@ pub struct KosonV2NftStakingContractState {
     pub world: ScenarioWorld,
     pub contract: KosonV2NftStakingContract,
     pub oracle_contract: OracleFeedsContract,
-    pub dex_pair_contract: DexPairContract,
+    pub dex_pair_ouro_koson_contract: DexPairContract,
+    pub dex_pair_ouro_usdd_contract: DexPairContract,
+    pub dex_pair_ouro_usdc_contract: DexPairContract,
+    pub dex_pair_ouro_wegld_contract: DexPairContract,
     pub owner_address: Address,
 }

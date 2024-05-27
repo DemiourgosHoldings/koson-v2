@@ -1,8 +1,13 @@
 use super::{
-    world, DexPairContract, KosonV2NftStakingContract, KosonV2NftStakingContractState, OracleFeedsContract, DEX_SWAP_SC_ADDRESS_EXPR, EGLD_PRICE_FEED_NAME, INITIAL_ESDT_BALANCE, INVALID_ESDT_TOKEN_ID, INVALID_NFT_TOKEN_ID, KOSON_TOKEN_ID, NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID, ORACLE_SC_ADDRESS_EXPR, OURO_TOKEN_ID, OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID, USER_1_ADDRESS_EXPR, WEGLD_TOKEN_ID
+    world, DexPairContract, KosonV2NftStakingContract, KosonV2NftStakingContractState,
+    OracleFeedsContract, DEX_OURO_KOSON_PAIR_ADDRESS_EXPR, DEX_OURO_USDC_PAIR_ADDRESS_EXPR,
+    DEX_OURO_USDD_PAIR_ADDRESS_EXPR, DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR, EGLD_PRICE_FEED_NAME,
+    INITIAL_ESDT_BALANCE, INVALID_ESDT_TOKEN_ID, INVALID_NFT_TOKEN_ID, KOSON_TOKEN_ID,
+    NFT_STAKING_SC_ADDRESS_EXPR, NFT_STAKING_TOKEN_ID, ORACLE_SC_ADDRESS_EXPR, OURO_TOKEN_ID,
+    OWNER_ADDRESS_EXPR, USDC_TOKEN_ID, USDD_TOKEN_ID, USER_1_ADDRESS_EXPR, WEGLD_TOKEN_ID,
 };
 
-use multiversx_sc::types::{Address, EsdtTokenPayment, MultiValueManagedVec};
+use multiversx_sc::types::{Address, BigUint, EsdtTokenPayment, MultiValueManagedVec};
 use multiversx_sc_scenario::{
     api::StaticApi,
     managed_address, managed_biguint, managed_buffer, managed_token_id,
@@ -14,8 +19,13 @@ use multiversx_sc_scenario::{
 
 use dex_pair_sc::ProxyTrait as _;
 use land_plot_staking::{
-    logic::ProxyTrait as _, logic::UnstakeRequest, reward_rate::ProxyTrait as _,
-    unstake_fee_calculator::umbrella_interactor::ProxyTrait as _, ProxyTrait as _,
+    logic::{ProxyTrait as _, UnstakeRequest},
+    reward_rate::ProxyTrait as _,
+    unstake_fee_calculator::{
+        calculator::ProxyTrait as _, dex_pair_interactor::ProxyTrait as _,
+        umbrella_interactor::ProxyTrait as _,
+    },
+    ProxyTrait as _,
 };
 use umbrella_oracle_mock::ProxyTrait as _;
 
@@ -137,13 +147,19 @@ impl KosonV2NftStakingContractState {
 
         let contract = KosonV2NftStakingContract::new(NFT_STAKING_SC_ADDRESS_EXPR);
         let oracle_contract = OracleFeedsContract::new(ORACLE_SC_ADDRESS_EXPR);
-        let dex_pair_contract = DexPairContract::new(DEX_SWAP_SC_ADDRESS_EXPR);
+        let dex_pair_ouro_koson_contract = DexPairContract::new(DEX_OURO_KOSON_PAIR_ADDRESS_EXPR);
+        let dex_pair_ouro_usdd_contract = DexPairContract::new(DEX_OURO_USDD_PAIR_ADDRESS_EXPR);
+        let dex_pair_ouro_usdc_contract = DexPairContract::new(DEX_OURO_USDC_PAIR_ADDRESS_EXPR);
+        let dex_pair_ouro_wegld_contract = DexPairContract::new(DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR);
 
         Self {
             world,
             contract,
             oracle_contract,
-            dex_pair_contract,
+            dex_pair_ouro_koson_contract,
+            dex_pair_ouro_usdd_contract,
+            dex_pair_ouro_usdc_contract,
+            dex_pair_ouro_wegld_contract,
             owner_address,
         }
     }
@@ -175,14 +191,47 @@ impl KosonV2NftStakingContractState {
         self.world.set_state_step(SetStateStep::new().new_address(
             OWNER_ADDRESS_EXPR,
             3,
-            DEX_SWAP_SC_ADDRESS_EXPR,
+            DEX_OURO_KOSON_PAIR_ADDRESS_EXPR,
+        ));
+        self.world.set_state_step(SetStateStep::new().new_address(
+            OWNER_ADDRESS_EXPR,
+            4,
+            DEX_OURO_USDD_PAIR_ADDRESS_EXPR,
+        ));
+        self.world.set_state_step(SetStateStep::new().new_address(
+            OWNER_ADDRESS_EXPR,
+            5,
+            DEX_OURO_USDC_PAIR_ADDRESS_EXPR,
+        ));
+        self.world.set_state_step(SetStateStep::new().new_address(
+            OWNER_ADDRESS_EXPR,
+            6,
+            DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR,
         ));
 
         self.world.sc_deploy(
             ScDeployStep::new()
                 .from(OWNER_ADDRESS_EXPR)
-                .code(self.world.code_expression(DEX_SWAP_SC_ADDRESS_EXPR))
-                .call(self.dex_pair_contract.init()),
+                .code(self.world.code_expression(DEX_OURO_KOSON_PAIR_ADDRESS_EXPR))
+                .call(self.dex_pair_ouro_koson_contract.init()),
+        );
+        self.world.sc_deploy(
+            ScDeployStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .code(self.world.code_expression(DEX_OURO_USDD_PAIR_ADDRESS_EXPR))
+                .call(self.dex_pair_ouro_usdd_contract.init()),
+        );
+        self.world.sc_deploy(
+            ScDeployStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .code(self.world.code_expression(DEX_OURO_USDC_PAIR_ADDRESS_EXPR))
+                .call(self.dex_pair_ouro_usdc_contract.init()),
+        );
+        self.world.sc_deploy(
+            ScDeployStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .code(self.world.code_expression(DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR))
+                .call(self.dex_pair_ouro_wegld_contract.init()),
         );
 
         self
@@ -214,6 +263,41 @@ impl KosonV2NftStakingContractState {
                         managed_address!(&AddressValue::from(ORACLE_SC_ADDRESS_EXPR).to_address()),
                     )),
             );
+
+        let dex_pair_config = [
+            (
+                DEX_OURO_KOSON_PAIR_ADDRESS_EXPR,
+                OURO_TOKEN_ID,
+                KOSON_TOKEN_ID,
+            ),
+            (
+                DEX_OURO_USDD_PAIR_ADDRESS_EXPR,
+                OURO_TOKEN_ID,
+                USDD_TOKEN_ID,
+            ),
+            (
+                DEX_OURO_USDC_PAIR_ADDRESS_EXPR,
+                OURO_TOKEN_ID,
+                USDC_TOKEN_ID,
+            ),
+            (
+                DEX_OURO_WEGLD_PAIR_ADDRESS_EXPR,
+                OURO_TOKEN_ID,
+                WEGLD_TOKEN_ID,
+            ),
+        ];
+
+        for pair_config in dex_pair_config.iter() {
+            let dex_pair_address = AddressValue::from(pair_config.0).to_address();
+            self.world
+                .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
+                    self.contract.set_pair_info(
+                        managed_token_id!(pair_config.1),
+                        managed_token_id!(pair_config.2),
+                        managed_address!(&dex_pair_address),
+                    ),
+                ));
+        }
 
         self
     }
@@ -392,6 +476,16 @@ impl KosonV2NftStakingContractState {
         self
     }
 
+    pub fn check_unstake_fee_per_score_in_koson(&mut self, expected_fee: u64) -> &mut Self {
+        self.world.sc_query(
+            ScQueryStep::new()
+                .call(self.contract.get_unstake_fee_per_score_koson())
+                .expect_value(managed_biguint!(expected_fee)),
+        );
+
+        self
+    }
+
     pub fn set_oracle_feed_price(&mut self, feed: &[u8], price: u64) -> &mut Self {
         self.world.sc_call(
             ScCallStep::new().from(&self.owner_address).call(
@@ -478,6 +572,70 @@ impl KosonV2NftStakingContractState {
     pub fn set_block_epoch(&mut self, target_epoch: u64) -> &mut Self {
         self.world
             .set_state_step(SetStateStep::new().block_epoch(target_epoch));
+
+        self
+    }
+
+    pub fn set_exchange_rate(&mut self, token: &str, rate: BigUint<StaticApi>) -> &mut Self {
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .call(match token {
+                    KOSON_TOKEN_ID => self
+                        .dex_pair_ouro_koson_contract
+                        .set_rate(managed_token_id!(OURO_TOKEN_ID), rate),
+                    USDD_TOKEN_ID => self
+                        .dex_pair_ouro_usdd_contract
+                        .set_rate(managed_token_id!(OURO_TOKEN_ID), rate),
+                    USDC_TOKEN_ID => self
+                        .dex_pair_ouro_usdc_contract
+                        .set_rate(managed_token_id!(OURO_TOKEN_ID), rate),
+                    WEGLD_TOKEN_ID => self
+                        .dex_pair_ouro_wegld_contract
+                        .set_rate(managed_token_id!(OURO_TOKEN_ID), rate),
+                    _ => panic!("Invalid token id"),
+                }),
+        );
+
+        self
+    }
+
+    pub fn check_get_equivalent_vesta_dex(
+        &mut self,
+        from_token_id: &str,
+        to_token_id: &str,
+        amount: BigUint<StaticApi>,
+        expected_amount: BigUint<StaticApi>,
+    ) -> &mut Self {
+        self.world.sc_query(
+            ScQueryStep::new()
+                .call(self.contract.get_equivalent_vesta_dex(
+                    managed_token_id!(from_token_id),
+                    managed_token_id!(to_token_id),
+                    amount,
+                ))
+                .expect_value(expected_amount),
+        );
+
+        self
+    }
+
+    pub fn check_get_equivalent_xexchange(
+        &mut self,
+        from_token_id: &str,
+        to_token_id: &str,
+        amount: BigUint<StaticApi>,
+        expected_amount: BigUint<StaticApi>,
+    ) -> &mut Self {
+        self.world.sc_query(
+            ScQueryStep::new()
+                .call(self.contract.get_equivalent_xexchange(
+                    managed_token_id!(from_token_id),
+                    managed_token_id!(to_token_id),
+                    amount,
+                ))
+                .expect_value(expected_amount),
+        );
 
         self
     }
