@@ -20,6 +20,7 @@ pub trait DexPairInteractorModule {
         self.swap_pair_address(&token_id_from, &token_id_to).clear();
     }
 
+    #[view(getEquivalentVestaDex)]
     fn get_equivalent_vesta_dex(
         &self,
         from: &TokenIdentifier,
@@ -33,6 +34,7 @@ pub trait DexPairInteractorModule {
             .execute_on_dest_context()
     }
 
+    #[view(getEquivalentXExchange)]
     fn get_equivalent_xexchange(
         &self,
         from: &TokenIdentifier,

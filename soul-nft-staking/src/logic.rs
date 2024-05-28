@@ -5,7 +5,11 @@ multiversx_sc::derive_imports!();
 
 #[multiversx_sc::module]
 pub trait LogicModule:
-    crate::storage::StorageModule + crate::reward_rate::RewardRateModule
+    crate::storage::StorageModule
+    + crate::reward_rate::RewardRateModule
+    + crate::unstake_fee_calculator::calculator::UnstakeFeeCalculator
+    + crate::unstake_fee_calculator::dex_pair_interactor::DexPairInteractorModule
+    + crate::unstake_fee_calculator::umbrella_interactor::UmbrellaInteractorModule
 {
     fn store_unclaimed_reward(&self, caller: &ManagedAddress) {
         let unclaimed_reward_rate = self.update_user_reward_rate(caller);
@@ -20,12 +24,15 @@ pub trait LogicModule:
         caller: &ManagedAddress,
         payments: &ManagedVec<EsdtTokenPayment>,
     ) -> BigUint {
+        let block_epoch = self.blockchain().get_block_epoch();
         let mut payments_score = BigUint::zero();
 
         for payment in payments.iter() {
             let soul_payment_score = self.get_payment_score_or_fail(&payment.token_identifier);
 
             self.staked_souls(caller).insert(payment.clone());
+            self.soul_stake_epoch(&payment.token_identifier, payment.token_nonce)
+                .set(block_epoch);
 
             payments_score += soul_payment_score;
         }
@@ -42,18 +49,28 @@ pub trait LogicModule:
         &self,
         caller: &ManagedAddress,
         unstake_request: &ManagedVec<EsdtTokenPayment>,
-    ) -> (ManagedVec<EsdtTokenPayment>, BigUint) {
+    ) -> (ManagedVec<EsdtTokenPayment>, BigUint, BigUint) {
+        let block_epoch = self.blockchain().get_block_epoch();
         let mut unstaked_payments = ManagedVec::new();
         let mut total_unstake_amount = BigUint::zero();
         let mut staked_souls = self.staked_souls(caller);
+        let mut total_unstake_fee_usd = BigUint::zero();
 
         for request in unstake_request.iter() {
             require!(staked_souls.remove(&request), ERR_NOT_ENOUGH_STAKED);
 
             let soul_payment_score = self.get_payment_score_or_fail(&request.token_identifier);
+            let soul_stake_epoch = self
+                .soul_stake_epoch(&request.token_identifier, request.token_nonce)
+                .get();
+            self.soul_stake_epoch(&request.token_identifier, request.token_nonce)
+                .clear();
 
             total_unstake_amount += &soul_payment_score;
 
+            let usd_fee = self.get_unstake_fee(&soul_payment_score, soul_stake_epoch, block_epoch);
+
+            total_unstake_fee_usd += &usd_fee;
             unstaked_payments.push(request);
         }
 
@@ -62,7 +79,11 @@ pub trait LogicModule:
         self.aggregated_soul_staking_scores()
             .update(|old_score| *old_score -= &total_unstake_amount);
 
-        (unstaked_payments, total_unstake_amount)
+        (
+            unstaked_payments,
+            total_unstake_amount,
+            total_unstake_fee_usd,
+        )
     }
 
     fn handle_distribute_rewards(&self, payment: &EsdtTokenPayment) {

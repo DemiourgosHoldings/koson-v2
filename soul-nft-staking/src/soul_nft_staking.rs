@@ -18,13 +18,32 @@ pub trait SoulNftStaking:
     + unstake_fee_calculator::umbrella_interactor::UmbrellaInteractorModule
 {
     #[init]
-    fn init(
+    fn init(&self) {}
+
+    #[only_owner]
+    #[allow_multiple_var_args]
+    #[endpoint(initConfig)]
+    fn init_config(
         &self,
+        ouro_token_id: TokenIdentifier,
+        usdd_token_id: TokenIdentifier,
+        usdc_token_id: TokenIdentifier,
+        wegld_token_id: TokenIdentifier,
+        koson_token_id: TokenIdentifier,
+        oracle_registry_address: ManagedAddress,
         death_soul_token_id: TokenIdentifier,
         origin_souls_token_ids: MultiValueManagedVecCounted<TokenIdentifier>,
         summoned_souls_token_ids: MultiValueManagedVec<TokenIdentifier>,
     ) {
+        self.ouro_token_id().set(&ouro_token_id);
+        self.usdd_token_id().set(&usdd_token_id);
+        self.usdc_token_id().set(&usdc_token_id);
+        self.wegld_token_id().set(&wegld_token_id);
+        self.koson_token_id().set(&koson_token_id);
+        self.reward_token_id().set(&koson_token_id);
+        self.set_oracle_registry_address(oracle_registry_address);
         self.death_souls_nft_token_id().set(death_soul_token_id);
+
         for token_id in origin_souls_token_ids.into_vec().iter() {
             self.origin_souls_nft_token_id()
                 .insert(token_id.clone_value());
@@ -54,10 +73,10 @@ pub trait SoulNftStaking:
         let payment = self.call_value().single_esdt();
 
         self.store_unclaimed_reward(&caller);
-        let (mut payments, unstaked_score) =
+        let (mut payments, unstaked_score, fee_usd) =
             self.process_soul_unstake_request(&caller, &unstake_request.into_vec());
 
-        let expected_unstake_fee = self.calculate_unstake_fee_usdc(unstaked_score.clone());
+        let expected_unstake_fee = self.convert_unstake_fee(fee_usd);
         self.require_payment_is_token_id(
             &payment,
             &self.koson_token_id().get(),

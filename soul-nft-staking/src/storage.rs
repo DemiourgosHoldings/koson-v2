@@ -60,4 +60,8 @@ pub trait StorageModule {
     #[view(getStakedSouls)]
     #[storage_mapper("staked_souls")]
     fn staked_souls(&self, user: &ManagedAddress) -> SetMapper<EsdtTokenPayment>;
+
+    #[view(getSoulStakeEpoch)]
+    #[storage_mapper("soul_stake_epoch")]
+    fn soul_stake_epoch(&self, token_id: &TokenIdentifier, nonce: u64) -> SingleValueMapper<u64>;
 }
