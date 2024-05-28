@@ -54,6 +54,21 @@ pub trait SoulNftStaking:
         }
     }
 
+    #[only_owner]
+    #[endpoint(setupScores)]
+    fn setup_scores(
+        &self,
+        token_ids: MultiValueManagedVecCounted<TokenIdentifier>,
+        scores: MultiValueManagedVecCounted<BigUint>,
+    ) {
+        let token_ids = token_ids.into_vec();
+        let scores = scores.into_vec();
+
+        for (token_id, score) in token_ids.iter().zip(scores.iter()) {
+            self.token_id_score(&token_id).set(score);
+        }
+    }
+
     #[payable("*")]
     #[endpoint(stake)]
     fn stake_souls(&self) -> BigUint {
@@ -64,6 +79,7 @@ pub trait SoulNftStaking:
         self.process_soul_stake_payment(&caller, &payments)
     }
 
+    #[payable("*")]
     #[endpoint(unstake)]
     fn unstake_souls(
         &self,

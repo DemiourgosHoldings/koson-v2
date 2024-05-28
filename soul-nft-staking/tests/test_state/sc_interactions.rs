@@ -11,6 +11,7 @@ use super::{
 
 use multiversx_sc::types::{
     Address, BigUint, EsdtTokenPayment, MultiValueManagedVec, MultiValueManagedVecCounted,
+    TokenIdentifier,
 };
 use multiversx_sc_scenario::{
     api::StaticApi,
@@ -157,54 +158,6 @@ impl KosonV2NftStakingContractState {
         self
     }
 
-    fn init_balances(&mut self) -> &mut Self {
-        let mut owner_acc = Account::new()
-            .esdt_balance(
-                format!("str:{}", INVALID_ESDT_TOKEN_ID).as_str(),
-                INITIAL_ESDT_BALANCE,
-            )
-            .esdt_balance(
-                format!("str:{}", KOSON_TOKEN_ID).as_str(),
-                INITIAL_ESDT_BALANCE,
-            );
-        let mut user_acc = Account::new()
-            .esdt_balance(
-                format!("str:{}", INVALID_ESDT_TOKEN_ID).as_str(),
-                INITIAL_ESDT_BALANCE,
-            )
-            .esdt_balance(
-                format!("str:{}", KOSON_TOKEN_ID).as_str(),
-                INITIAL_ESDT_BALANCE,
-            );
-
-        let mut token_ids = [ORIGIN_SOULS_TOKEN_IDS, SUMMONED_ORIGIN_SOULS_TOKEN_IDS].concat();
-        token_ids.push(DEATH_SOUL_TOKEN_ID);
-
-        for token_id in token_ids.iter() {
-            for user_nonce in 1..=50u64 {
-                user_acc = user_acc.esdt_nft_balance(
-                    format!("str:{}", token_id).as_str(),
-                    user_nonce,
-                    "1",
-                    Some(""),
-                );
-
-                owner_acc = owner_acc.esdt_nft_balance(
-                    format!("str:{}", token_id).as_str(),
-                    user_nonce + 50,
-                    "1",
-                    Some(""),
-                );
-            }
-        }
-
-        self.world
-            .set_state_step(SetStateStep::new().put_account(USER_1_ADDRESS_EXPR, user_acc))
-            .set_state_step(SetStateStep::new().put_account(OWNER_ADDRESS_EXPR, owner_acc));
-
-        self
-    }
-
     pub fn init(&mut self) -> &mut Self {
         self.init_balances();
 
@@ -280,6 +233,84 @@ impl KosonV2NftStakingContractState {
                     ),
                 ));
         }
+
+        self.init_scores();
+
+        self
+    }
+
+    fn init_balances(&mut self) -> &mut Self {
+        let mut owner_acc = Account::new()
+            .esdt_balance(
+                format!("str:{}", INVALID_ESDT_TOKEN_ID).as_str(),
+                INITIAL_ESDT_BALANCE,
+            )
+            .esdt_balance(
+                format!("str:{}", KOSON_TOKEN_ID).as_str(),
+                INITIAL_ESDT_BALANCE,
+            );
+        let mut user_acc = Account::new()
+            .esdt_balance(
+                format!("str:{}", INVALID_ESDT_TOKEN_ID).as_str(),
+                INITIAL_ESDT_BALANCE,
+            )
+            .esdt_balance(
+                format!("str:{}", KOSON_TOKEN_ID).as_str(),
+                INITIAL_ESDT_BALANCE,
+            );
+
+        let mut token_ids = [ORIGIN_SOULS_TOKEN_IDS, SUMMONED_ORIGIN_SOULS_TOKEN_IDS].concat();
+        token_ids.push(DEATH_SOUL_TOKEN_ID);
+
+        for token_id in token_ids.iter() {
+            for user_nonce in 1..=50u64 {
+                user_acc = user_acc.esdt_nft_balance(
+                    format!("str:{}", token_id).as_str(),
+                    user_nonce,
+                    "1",
+                    Some(""),
+                );
+
+                owner_acc = owner_acc.esdt_nft_balance(
+                    format!("str:{}", token_id).as_str(),
+                    user_nonce + 50,
+                    "1",
+                    Some(""),
+                );
+            }
+        }
+
+        self.world
+            .set_state_step(SetStateStep::new().put_account(USER_1_ADDRESS_EXPR, user_acc))
+            .set_state_step(SetStateStep::new().put_account(OWNER_ADDRESS_EXPR, owner_acc));
+
+        self
+    }
+
+    fn init_scores(&mut self) -> &mut Self {
+        let mut scores: MultiValueManagedVecCounted<StaticApi, BigUint<StaticApi>> =
+            MultiValueManagedVecCounted::new();
+        let mut token_ids: MultiValueManagedVecCounted<StaticApi, TokenIdentifier<StaticApi>> =
+            MultiValueManagedVecCounted::new();
+
+        for token_id in ORIGIN_SOULS_TOKEN_IDS.iter() {
+            token_ids.push(managed_token_id!(*token_id));
+            scores.push(managed_biguint!(10u32));
+        }
+
+        for token_id in SUMMONED_ORIGIN_SOULS_TOKEN_IDS.iter() {
+            token_ids.push(managed_token_id!(*token_id));
+            scores.push(managed_biguint!(5u32));
+        }
+
+        token_ids.push(managed_token_id!(DEATH_SOUL_TOKEN_ID));
+        scores.push(managed_biguint!(30u32));
+
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .call(self.contract.setup_scores(token_ids, scores)),
+        );
 
         self
     }
