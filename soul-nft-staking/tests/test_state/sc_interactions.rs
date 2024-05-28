@@ -24,6 +24,7 @@ use multiversx_sc_scenario::{
 
 use dex_pair_sc::ProxyTrait as _;
 use soul_nft_staking::{
+    constants::score::{DEATH_SOUL_SCORE, ORIGIN_SOULS_SCORE, SUMMONED_SOUL_SCORE},
     logic::ProxyTrait as _,
     reward_rate::ProxyTrait as _,
     unstake_fee_calculator::{
@@ -261,6 +262,7 @@ impl KosonV2NftStakingContractState {
 
         let mut token_ids = [ORIGIN_SOULS_TOKEN_IDS, SUMMONED_ORIGIN_SOULS_TOKEN_IDS].concat();
         token_ids.push(DEATH_SOUL_TOKEN_ID);
+        token_ids.push(INVALID_NFT_TOKEN_ID);
 
         for token_id in token_ids.iter() {
             for user_nonce in 1..=50u64 {
@@ -295,16 +297,16 @@ impl KosonV2NftStakingContractState {
 
         for token_id in ORIGIN_SOULS_TOKEN_IDS.iter() {
             token_ids.push(managed_token_id!(*token_id));
-            scores.push(managed_biguint!(10u32));
+            scores.push(managed_biguint!(ORIGIN_SOULS_SCORE));
         }
 
         for token_id in SUMMONED_ORIGIN_SOULS_TOKEN_IDS.iter() {
             token_ids.push(managed_token_id!(*token_id));
-            scores.push(managed_biguint!(5u32));
+            scores.push(managed_biguint!(SUMMONED_SOUL_SCORE));
         }
 
         token_ids.push(managed_token_id!(DEATH_SOUL_TOKEN_ID));
-        scores.push(managed_biguint!(30u32));
+        scores.push(managed_biguint!(DEATH_SOUL_SCORE));
 
         self.world.sc_call(
             ScCallStep::new()
