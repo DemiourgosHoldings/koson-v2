@@ -388,6 +388,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "dex-pair-sc"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+]
+
+[[package]]
 name = "digest"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1707,9 +1714,11 @@ dependencies = [
 name = "soul-nft-staking"
 version = "0.0.0"
 dependencies = [
+ "dex-pair-sc",
  "multiversx-sc",
  "multiversx-sc-scenario",
  "num-bigint",
+ "umbrella-oracle-mock",
 ]
 
 [[package]]
@@ -1921,6 +1930,13 @@ name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
+
+[[package]]
+name = "umbrella-oracle-mock"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+]
 
 [[package]]
 name = "unicode-bidi"

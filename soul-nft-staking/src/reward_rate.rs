@@ -27,11 +27,19 @@ pub trait RewardRateModule {
         current_reward_rate - last_claimed_reward_rate
     }
 
-    #[view(getRewardRate)]
+    #[view(getCurrentRewardRate)]
+    fn get_current_reward_rate(&self) -> BigUint {
+        self.current_reward_rate().get()
+    }
+
+    #[view(getLastClaimedRewardRate)]
+    fn get_last_claimed_reward_rate(&self, user_address: &ManagedAddress) -> BigUint {
+        self.last_claimed_reward_rate(user_address).get()
+    }
+
     #[storage_mapper("current_reward_rate")]
     fn current_reward_rate(&self) -> SingleValueMapper<BigUint>;
 
-    #[view(getLastClaimedRewardRate)]
     #[storage_mapper("last_claimed_reward_rate")]
     fn last_claimed_reward_rate(&self, user_address: &ManagedAddress)
         -> SingleValueMapper<BigUint>;

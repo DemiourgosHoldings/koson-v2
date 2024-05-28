@@ -104,7 +104,7 @@ pub trait SoulNftStaking:
     }
 
     #[endpoint(claimRewards)]
-    fn claim_rewards(&self) {
+    fn claim_rewards(&self) -> EsdtTokenPayment {
         let caller = self.blockchain().get_caller();
 
         self.store_unclaimed_reward(&caller);
@@ -112,12 +112,12 @@ pub trait SoulNftStaking:
         let unclaimed_rewards = self.user_unclaimed_rewards(&caller).get();
 
         self.user_unclaimed_rewards(&caller).set(BigUint::zero());
-        self.send().direct_esdt(
-            &caller,
-            &self.reward_token_id().get(),
-            0u64,
-            &unclaimed_rewards,
-        );
+
+        let reward_token_id = self.reward_token_id().get();
+        self.send()
+            .direct_esdt(&caller, &reward_token_id, 0u64, &unclaimed_rewards);
+
+        EsdtTokenPayment::new(reward_token_id, 0u64, unclaimed_rewards)
     }
 
     #[payable("*")]
@@ -126,5 +126,20 @@ pub trait SoulNftStaking:
         let payment = self.call_value().single_esdt();
 
         self.handle_distribute_rewards(&payment);
+    }
+
+    #[view(getUserScore)]
+    fn get_user_score(&self, address: ManagedAddress) -> BigUint {
+        self.user_aggregated_soul_staking_scores(&address).get()
+    }
+
+    #[view(getAggregatedScore)]
+    fn get_aggregated_score(&self) -> BigUint {
+        self.aggregated_soul_staking_scores().get()
+    }
+
+    #[view(getStakeEpoch)]
+    fn get_stake_epoch(&self, token_id: TokenIdentifier, nonce: u64) -> u64 {
+        self.soul_stake_epoch(&token_id, nonce).get()
     }
 }
