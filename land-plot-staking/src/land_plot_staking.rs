@@ -67,7 +67,7 @@ pub trait LandPlotStaking:
         let (mut payments, unstaked_score, fee_in_usd) =
             self.process_land_plot_unstake_request(&caller, &unstake_request.into_vec());
 
-        let expected_unstake_fee = self.calculate_unstake_fee(fee_in_usd);
+        let expected_unstake_fee = self.convert_unstake_fee(fee_in_usd);
         self.require_payment_is_token_id(
             &payment,
             &self.koson_token_id().get(),

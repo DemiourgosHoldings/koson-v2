@@ -15,10 +15,10 @@ pub trait UnstakeFeeCalculator:
 {
     #[view(getUnstakeFeePerScoreKoson)]
     fn get_unstake_fee_per_score_koson(&self) -> BigUint {
-        self.calculate_unstake_fee(BigUint::from(UNSTAKE_FEE_PER_SCORE_USD))
+        self.convert_unstake_fee(BigUint::from(UNSTAKE_FEE_PER_SCORE_USD))
     }
 
-    fn calculate_unstake_fee(&self, unstake_fee_usd: BigUint) -> BigUint {
+    fn convert_unstake_fee(&self, unstake_fee_usd: BigUint) -> BigUint {
         let ouro_token_id = self.ouro_token_id().get();
         let wegld_token_id = self.wegld_token_id().get();
         let usdd_token_id = self.usdd_token_id().get();
