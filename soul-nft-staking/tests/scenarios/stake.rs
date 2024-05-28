@@ -1,4 +1,7 @@
-use soul_nft_staking::constants::{errors::ERR_NOT_A_SOUL, score::ORIGIN_SOULS_SCORE};
+use soul_nft_staking::constants::{
+    errors::ERR_NOT_A_SOUL,
+    score::{DEATH_SOUL_SCORE, ORIGIN_SOULS_SCORE, SUMMONED_SOUL_SCORE},
+};
 
 use crate::test_state::{
     KosonV2NftStakingContractState, DEATH_SOUL_TOKEN_ID, INVALID_NFT_TOKEN_ID,
@@ -36,6 +39,27 @@ fn simple_multiple_stake() {
         stake_transfer.clone(),
         ORIGIN_SOULS_SCORE * stake_transfer.len() as u64,
     );
+}
+
+#[test]
+fn stake_one_of_each() {
+    let mut token_ids = [ORIGIN_SOULS_TOKEN_IDS, SUMMONED_ORIGIN_SOULS_TOKEN_IDS].concat();
+    token_ids.push(DEATH_SOUL_TOKEN_ID);
+
+    let stake_transfer = token_ids
+        .iter()
+        .map(|token_id| (*token_id, 1u64))
+        .collect::<Vec<_>>();
+
+    let expected_score = ORIGIN_SOULS_SCORE * ORIGIN_SOULS_TOKEN_IDS.len() as u64
+        + SUMMONED_SOUL_SCORE * SUMMONED_ORIGIN_SOULS_TOKEN_IDS.len() as u64
+        + DEATH_SOUL_SCORE;
+
+    let mut state = KosonV2NftStakingContractState::new();
+    state
+        .deploy()
+        .init()
+        .stake_many(USER_1_ADDRESS_EXPR, stake_transfer.clone(), expected_score);
 }
 
 #[test]

@@ -1,5 +1,7 @@
 #![no_std]
 
+use constants::errors::ERR_NOTHING_TO_CLAIM;
+
 multiversx_sc::imports!();
 
 pub mod constants;
@@ -126,6 +128,8 @@ pub trait SoulNftStaking:
         self.store_unclaimed_reward(&caller);
 
         let unclaimed_rewards = self.user_unclaimed_rewards(&caller).get();
+
+        require!(unclaimed_rewards > 0, ERR_NOTHING_TO_CLAIM);
 
         self.user_unclaimed_rewards(&caller).set(BigUint::zero());
 
