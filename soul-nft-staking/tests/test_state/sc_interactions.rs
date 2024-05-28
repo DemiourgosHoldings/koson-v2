@@ -287,7 +287,7 @@ impl KosonV2NftStakingContractState {
     pub fn stake_many(
         &mut self,
         address_from: &str,
-        payments: Vec<(&str, u64, u64)>,
+        payments: Vec<(&str, u64)>,
         expected_stake_score: u64,
     ) -> &mut Self {
         self.world.sc_call(
@@ -304,7 +304,7 @@ impl KosonV2NftStakingContractState {
     pub fn stake_many_expect_err(
         &mut self,
         address_from: &str,
-        payments: Vec<(&str, u64, u64)>,
+        payments: Vec<(&str, u64)>,
         err_msg: &str,
     ) -> &mut Self {
         self.world.sc_call(
@@ -321,7 +321,7 @@ impl KosonV2NftStakingContractState {
     pub fn unstake_many(
         &mut self,
         address_from: &str,
-        unstake_items: Vec<(&str, u64, u64)>,
+        unstake_items: Vec<(&str, u64)>,
         fee_payment: (&str, u64),
         expected_unstake_score: u64,
     ) -> &mut Self {
@@ -342,7 +342,7 @@ impl KosonV2NftStakingContractState {
     pub fn unstake_many_expect_err(
         &mut self,
         address_from: &str,
-        unstake_items: Vec<(&str, u64, u64)>,
+        unstake_items: Vec<(&str, u64)>,
         fee_payment: (&str, u64),
         err_msg: &str,
     ) -> &mut Self {
@@ -643,27 +643,27 @@ impl KosonV2NftStakingContractState {
         self
     }
 
-    fn get_txesdt_vec(vec_data: Vec<(&str, u64, u64)>) -> Vec<TxESDT> {
+    fn get_txesdt_vec(vec_data: Vec<(&str, u64)>) -> Vec<TxESDT> {
         let mut payments = vec![];
-        for (token_id, nonce, amount) in vec_data.iter() {
+        for (token_id, nonce) in vec_data.iter() {
             payments.push(TxESDT {
                 esdt_token_identifier: BytesValue::from(format!("str:{}", *token_id)),
                 nonce: U64Value::from(*nonce),
-                esdt_value: BigUintValue::from(*amount),
+                esdt_value: BigUintValue::from(1u32),
             })
         }
         payments
     }
 
     fn get_unstake_request(
-        vec_data: Vec<(&str, u64, u64)>,
+        vec_data: Vec<(&str, u64)>,
     ) -> MultiValueManagedVec<StaticApi, EsdtTokenPayment<StaticApi>> {
         let mut unstake_request = MultiValueManagedVec::new();
-        for (token_id, nonce, amount) in vec_data.iter() {
+        for (token_id, nonce) in vec_data.iter() {
             unstake_request.push(EsdtTokenPayment::new(
                 managed_token_id!(*token_id),
                 *nonce,
-                managed_biguint!(*amount),
+                managed_biguint!(1u32),
             ));
         }
         unstake_request
