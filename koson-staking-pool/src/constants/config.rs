@@ -1,0 +1,1 @@
+pub const POOL_INDEX_DENOMINATION: u64 = 1_000_000_000; // pool index = 1
