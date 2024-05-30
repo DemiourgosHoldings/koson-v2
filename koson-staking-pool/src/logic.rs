@@ -1,6 +1,9 @@
-use crate::constants::{
-    config::POOL_INDEX_DENOMINATION,
-    errors::{ERR_PAYMENT_AMOUNT_ZERO, ERR_PAYMENT_NOT_ALLOWED},
+use crate::{
+    constants::{
+        config::POOL_INDEX_DENOMINATION,
+        errors::{ERR_PAYMENT_AMOUNT_ZERO, ERR_PAYMENT_NOT_ALLOWED},
+    },
+    types::wrapped_payment::WrappedPayment,
 };
 
 multiversx_sc::imports!();
@@ -14,6 +17,11 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             staked_koson_amount_to_send += self.process_single_payment_stake(&payment);
         }
 
+        self.mint_esdt(
+            &self.staked_koson_token_id().get(),
+            &staked_koson_amount_to_send,
+        );
+
         EsdtTokenPayment::new(
             self.staked_koson_token_id().get(),
             0u64,
@@ -21,10 +29,8 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         )
     }
 
-    fn mint_and_send_staked_koson(&self, payment: EsdtTokenPayment) {
+    fn send_payment_non_zero(&self, payment: EsdtTokenPayment) {
         require!(payment.amount > 0, ERR_PAYMENT_AMOUNT_ZERO);
-
-        self.mint_esdt(&payment.token_identifier, &payment.amount);
         self.send().direct_multi(
             &self.blockchain().get_caller(),
             &ManagedVec::from_single_item(payment),
@@ -56,6 +62,32 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             .update(|old_supply| *old_supply += &payment.amount);
 
         staked_koson_amount_to_send
+    }
+
+    fn process_unstake(&self, payment: &EsdtTokenPayment) -> EsdtTokenPayment {
+        self.require_token_ids_match(
+            &payment.token_identifier,
+            &self.staked_koson_token_id().get(),
+        );
+
+        let unbonding_koson_token_id = self.unbonding_koson_token_id().get();
+
+        self.burn_esdt(&payment.token_identifier, 0u64, &payment.amount);
+        self.staked_koson_supply(&payment.token_identifier)
+            .update(|old_supply| *old_supply -= &payment.amount);
+
+        let unbonding_koson_payment = self.mint_meta_esdt(
+            &unbonding_koson_token_id,
+            &payment.amount,
+            WrappedPayment {
+                mint_epoch: self.blockchain().get_block_epoch(),
+            },
+        );
+
+        self.staked_koson_supply(&unbonding_koson_token_id)
+            .update(|old_supply| *old_supply += &payment.amount);
+
+        unbonding_koson_payment
     }
 
     fn get_pool_index(&self) -> BigUint {
@@ -109,5 +141,9 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             self.koson_token_ids().contains(token_id),
             ERR_PAYMENT_NOT_ALLOWED
         );
+    }
+
+    fn require_token_ids_match(&self, token_id_1: &TokenIdentifier, token_id_2: &TokenIdentifier) {
+        require!(token_id_1 == token_id_2, ERR_PAYMENT_NOT_ALLOWED);
     }
 }

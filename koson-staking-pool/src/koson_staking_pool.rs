@@ -34,7 +34,7 @@ pub trait KosonStakingPool:
         let payments = self.call_value().all_esdt_transfers();
 
         let staked_koson_payment = self.process_stake(&payments);
-        self.mint_and_send_staked_koson(staked_koson_payment.clone());
+        self.send_payment_non_zero(staked_koson_payment.clone());
 
         staked_koson_payment
     }
@@ -42,7 +42,12 @@ pub trait KosonStakingPool:
     #[payable("*")]
     #[endpoint(startUnstake)]
     fn unstake_koson(&self) -> EsdtTokenPayment {
-        todo!()
+        let payment = self.call_value().single_esdt();
+        let unbonding_koson_payment = self.process_unstake(&payment);
+
+        self.send_payment_non_zero(unbonding_koson_payment.clone());
+
+        unbonding_koson_payment
     }
 
     #[payable("*")]
