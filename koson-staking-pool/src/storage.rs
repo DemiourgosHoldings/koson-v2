@@ -21,4 +21,8 @@ pub trait StorageModule {
     #[view(getStakedKosonSupply)]
     #[storage_mapper("staked_koson_supply")]
     fn staked_koson_supply(&self, token_id: &TokenIdentifier) -> SingleValueMapper<BigUint>;
+
+    #[view(getUnbondingTimePenalty)]
+    #[storage_mapper("unbonding_time_penalty")]
+    fn unbonding_time_penalty(&self) -> SingleValueMapper<u64>;
 }

@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            1
-// Async Callback (empty):               1
-// Total number of exported functions:   3
+// Endpoints:                           16
+// Async Callback:                       1
+// Total number of exported functions:  18
 
 #![no_std]
 #![allow(internal_features)]
@@ -21,7 +21,22 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
+        initConfig => init_config
+        stake => stake_koson
+        startUnstake => unstake_koson
+        claimUnstaked => claim_unstaked
+        distributeReward => distribute_reward
+        issue => issue_token
+        getKosonTokenId => koson_token_ids
+        getStakedKosonTokenId => staked_koson_token_id
+        getUnbondingKosonTokenId => unbonding_koson_token_id
+        getKosonSupply => koson_supply
+        getStakedKosonSupply => staked_koson_supply
+        getUnbondingTimePenalty => unbonding_time_penalty
+        getUnclaimedRewardRate => get_unclaimed_reward_rate
+        getCurrentRewardRate => get_current_reward_rate
+        getLastClaimedRewardRate => get_last_claimed_reward_rate
     )
 }
 
-multiversx_sc_wasm_adapter::async_callback_empty! {}
+multiversx_sc_wasm_adapter::async_callback! { koson_staking_pool }

@@ -52,13 +52,22 @@ pub trait KosonStakingPool:
 
     #[payable("*")]
     #[endpoint(claimUnstaked)]
-    fn claim_unstaked(&self) {
-        todo!()
+    fn claim_unstaked(&self) -> ManagedVec<EsdtTokenPayment> {
+        let payments = self.call_value().all_esdt_transfers();
+
+        let outgoing_payments = self.process_claim_unstaked(&payments);
+        self.send_multi_payments_non_zero(&outgoing_payments);
+
+        outgoing_payments
     }
 
     #[payable("*")]
     #[endpoint(distributeReward)]
-    fn distribute_reward(&self) {
-        todo!()
+    fn distribute_reward(&self) -> BigUint {
+        let payments = self.call_value().all_esdt_transfers();
+
+        self.handle_distribute_rewards(&payments);
+
+        self.get_pool_index()
     }
 }

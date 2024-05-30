@@ -1,6 +1,6 @@
 use crate::{
     constants::{
-        config::POOL_INDEX_DENOMINATION,
+        config::POOL_INDEX_DENOMINATOR,
         errors::{ERR_PAYMENT_AMOUNT_ZERO, ERR_PAYMENT_NOT_ALLOWED},
     },
     types::wrapped_payment::WrappedPayment,
@@ -35,6 +35,17 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             &self.blockchain().get_caller(),
             &ManagedVec::from_single_item(payment),
         );
+    }
+
+    fn send_multi_payments_non_zero(&self, payments: &ManagedVec<EsdtTokenPayment>) {
+        let zero_amount_payments: ManagedVec<EsdtTokenPayment> = payments
+            .into_iter()
+            .filter(|payment| payment.amount == 0)
+            .collect();
+        require!(zero_amount_payments.is_empty(), ERR_PAYMENT_AMOUNT_ZERO);
+
+        self.send()
+            .direct_multi(&self.blockchain().get_caller(), payments);
     }
 
     fn process_single_payment_stake(&self, payment: &EsdtTokenPayment) -> BigUint {
@@ -79,15 +90,46 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         let unbonding_koson_payment = self.mint_meta_esdt(
             &unbonding_koson_token_id,
             &payment.amount,
-            WrappedPayment {
-                mint_epoch: self.blockchain().get_block_epoch(),
-            },
+            WrappedPayment::new(self.blockchain().get_block_epoch()),
         );
 
         self.staked_koson_supply(&unbonding_koson_token_id)
             .update(|old_supply| *old_supply += &payment.amount);
 
         unbonding_koson_payment
+    }
+
+    fn process_claim_unstaked(
+        &self,
+        payments_in: &ManagedVec<EsdtTokenPayment>,
+    ) -> ManagedVec<EsdtTokenPayment> {
+        let unbonding_koson_token_id = self.unbonding_koson_token_id().get();
+        let total_staked_koson_supply = self
+            .staked_koson_supply(&self.staked_koson_token_id().get())
+            .get()
+            + self
+                .staked_koson_supply(&self.unbonding_koson_token_id().get())
+                .get();
+
+        let mut payments_out = ManagedVec::new();
+
+        for payment in payments_in.iter() {
+            self.require_token_ids_match(&payment.token_identifier, &unbonding_koson_token_id);
+            let unbonded_payments =
+                self.get_unbonded_koson_amounts_out(&payment.amount, &total_staked_koson_supply);
+
+            for unbonded_payment in unbonded_payments.iter() {
+                payments_out.push(unbonded_payment);
+            }
+
+            self.staked_koson_supply(&payment.token_identifier)
+                .update(|old_supply| {
+                    *old_supply -= &payment.amount;
+                });
+            self.burn_esdt(&payment.token_identifier, 0u64, &payment.amount);
+        }
+
+        payments_out
     }
 
     fn get_pool_index(&self) -> BigUint {
@@ -107,7 +149,7 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             total_staked_koson_supply += self.staked_koson_supply(token_id).get();
         }
 
-        total_koson_supply * POOL_INDEX_DENOMINATION / total_staked_koson_supply
+        total_koson_supply * POOL_INDEX_DENOMINATOR / total_staked_koson_supply
     }
 
     fn get_all_koson_token_ids_but_one(
@@ -133,7 +175,32 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
     ) -> BigUint {
         payment_in_amount * pool_index * payment_koson_supply
             / remaining_koson_types_supply
-            / POOL_INDEX_DENOMINATION
+            / POOL_INDEX_DENOMINATOR
+    }
+
+    fn get_unbonded_koson_amounts_out(
+        &self,
+        token_amount_in: &BigUint,
+        total_staked_koson_supply: &BigUint,
+    ) -> ManagedVec<EsdtTokenPayment> {
+        let mut payments_out = ManagedVec::new();
+
+        for koson_token_id in self.koson_token_ids().iter() {
+            let supply = self.koson_supply(&koson_token_id).get();
+
+            let amount_to_send = token_amount_in * &supply / total_staked_koson_supply;
+            payments_out.push(EsdtTokenPayment::new(koson_token_id, 0u64, amount_to_send));
+        }
+
+        payments_out
+    }
+
+    fn handle_distribute_rewards(&self, payments: &ManagedVec<EsdtTokenPayment>) {
+        for payment in payments.iter() {
+            self.require_payment_token_is_koson(&payment.token_identifier);
+            self.koson_supply(&payment.token_identifier)
+                .update(|old_supply| *old_supply += &payment.amount);
+        }
     }
 
     fn require_payment_token_is_koson(&self, token_id: &TokenIdentifier) {
