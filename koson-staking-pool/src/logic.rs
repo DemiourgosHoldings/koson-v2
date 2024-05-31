@@ -1,7 +1,7 @@
 use crate::{
     constants::{
         config::POOL_INDEX_DENOMINATOR,
-        errors::{ERR_PAYMENT_AMOUNT_ZERO, ERR_PAYMENT_NOT_ALLOWED},
+        errors::{ERR_CANNOT_DECODE, ERR_PAYMENT_AMOUNT_ZERO, ERR_PAYMENT_NOT_ALLOWED},
     },
     types::wrapped_payment::WrappedPayment,
 };
@@ -115,10 +115,24 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
 
         for payment in payments_in.iter() {
             self.require_token_ids_match(&payment.token_identifier, &unbonding_koson_token_id);
+
+            let token_metadata = self.decode_token_attributes::<WrappedPayment>(
+                &payment.token_identifier,
+                payment.token_nonce,
+            );
+
+            let (remaining_amount, _) = token_metadata.compute_fee(
+                &payment.amount,
+                self.unbonding_time_penalty().get(),
+                self.blockchain().get_block_epoch(),
+            );
+
             let unbonded_payments =
-                self.get_unbonded_koson_amounts_out(&payment.amount, &total_staked_koson_supply);
+                self.get_unbonded_koson_amounts_out(&remaining_amount, &total_staked_koson_supply);
 
             for unbonded_payment in unbonded_payments.iter() {
+                self.koson_supply(&unbonded_payment.token_identifier)
+                    .update(|old_supply| *old_supply -= &unbonded_payment.amount);
                 payments_out.push(unbonded_payment);
             }
 
@@ -169,13 +183,14 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
     fn get_staked_koson_amount_out(
         &self,
         payment_in_amount: &BigUint,
-        payment_koson_supply: &BigUint,
-        remaining_koson_types_supply: &BigUint,
-        pool_index: &BigUint,
+        _payment_koson_supply: &BigUint,
+        _remaining_koson_types_supply: &BigUint,
+        _pool_index: &BigUint,
     ) -> BigUint {
-        payment_in_amount * pool_index * payment_koson_supply
-            / remaining_koson_types_supply
-            / POOL_INDEX_DENOMINATOR
+        // payment_in_amount * pool_index * payment_koson_supply
+        //     / remaining_koson_types_supply
+        //     / POOL_INDEX_DENOMINATOR
+        payment_in_amount.clone()
     }
 
     fn get_unbonded_koson_amounts_out(
@@ -188,6 +203,7 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         for koson_token_id in self.koson_token_ids().iter() {
             let supply = self.koson_supply(&koson_token_id).get();
 
+            // TODO: decode the token metadata and compute actual amount and fee
             let amount_to_send = token_amount_in * &supply / total_staked_koson_supply;
             payments_out.push(EsdtTokenPayment::new(koson_token_id, 0u64, amount_to_send));
         }
@@ -201,6 +217,26 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             self.koson_supply(&payment.token_identifier)
                 .update(|old_supply| *old_supply += &payment.amount);
         }
+    }
+
+    fn decode_token_attributes<T: TopDecode>(
+        &self,
+        token_identifier: &TokenIdentifier,
+        nonce: u64,
+    ) -> T {
+        let token_info = self.blockchain().get_esdt_token_data(
+            &self.blockchain().get_sc_address(),
+            token_identifier,
+            nonce,
+        );
+
+        let attributes: T = match token_info.try_decode_attributes() {
+            Result::Ok(val) => val,
+            Result::Err(_) => {
+                sc_panic!(ERR_CANNOT_DECODE)
+            }
+        };
+        return attributes;
     }
 
     fn require_payment_token_is_koson(&self, token_id: &TokenIdentifier) {
