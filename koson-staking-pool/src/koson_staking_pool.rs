@@ -1,5 +1,6 @@
 #![no_std]
 
+use constants::config::POOL_INDEX_DENOMINATOR;
 #[allow(unused_imports)]
 use multiversx_sc::imports::*;
 
@@ -22,9 +23,14 @@ pub trait KosonStakingPool:
 
     #[only_owner]
     #[endpoint(initConfig)]
-    fn init_config(&self, koson_token_identifiers: MultiValueManagedVec<TokenIdentifier>) {
+    fn init_config(
+        &self,
+        unbonding_time_penalty: u64,
+        koson_token_identifiers: MultiValueManagedVec<TokenIdentifier>,
+    ) {
         for token_id in koson_token_identifiers.iter() {
             self.koson_token_ids().insert(token_id.clone_value());
+            self.unbonding_time_penalty().set(unbonding_time_penalty);
         }
     }
 
@@ -69,5 +75,10 @@ pub trait KosonStakingPool:
         self.handle_distribute_rewards(&payments);
 
         self.get_pool_index()
+    }
+
+    #[view(getPoolIndex)]
+    fn get_pool_index_view(&self) -> (BigUint, BigUint) {
+        (self.get_pool_index(), BigUint::from(POOL_INDEX_DENOMINATOR))
     }
 }

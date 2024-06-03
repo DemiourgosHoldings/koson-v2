@@ -26,6 +26,12 @@ pub trait EsdtModule: crate::storage::StorageModule {
             .call_and_exit();
     }
 
+    #[only_owner]
+    #[endpoint(setStakedKosonTokenId)]
+    fn set_staked_koson_token_id(&self, token_id: TokenIdentifier) {
+        self.staked_koson_token_id().set(token_id);
+    }
+
     #[callback]
     fn issue_token_callback(
         &self,
@@ -34,7 +40,7 @@ pub trait EsdtModule: crate::storage::StorageModule {
         match result {
             ManagedAsyncCallResult::Ok(token_id) => {
                 let token_id = token_id.unwrap_esdt();
-                self.staked_koson_token_id().set(token_id);
+                self.set_staked_koson_token_id(token_id)
             }
             ManagedAsyncCallResult::Err(_) => {
                 let caller = self.blockchain().get_owner_address();
