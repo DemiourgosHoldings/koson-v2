@@ -16,7 +16,9 @@ use multiversx_sc_scenario::{
 };
 
 use koson_staking_pool::{
-    constants::config::POOL_INDEX_DENOMINATOR, esdt::ProxyTrait as _, ProxyTrait as _,
+    constants::config::{POOL_INDEX_DENOMINATOR, STAKED_KOSON_KEY, UNBONDING_KOSON_KEY},
+    esdt::ProxyTrait as _,
+    ProxyTrait as _,
 };
 
 impl KosonStakingPoolState {
@@ -84,6 +86,8 @@ impl KosonStakingPoolState {
         let esdt_roles = vec![
             "ESDTRoleLocalBurn".to_string(),
             "ESDTRoleLocalMint".to_string(),
+            "ESDTRoleNFTCreate".to_string(),
+            "ESDTRoleNFTBurn".to_string(),
         ];
 
         self.world.sc_deploy(
@@ -127,12 +131,25 @@ impl KosonStakingPoolState {
             ),
         );
 
-        self.world.sc_call(
-            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
-                self.contract
-                    .set_staked_koson_token_id(managed_token_id!(KOSON_REWARD_BEARING_TOKEN)),
-            ),
-        );
+        self.world
+            .sc_call(
+                ScCallStep::new()
+                    .from(OWNER_ADDRESS_EXPR)
+                    .call(self.contract.set_token_id(
+                        managed_token_id!(KOSON_REWARD_BEARING_TOKEN),
+                        STAKED_KOSON_KEY,
+                    )),
+            );
+
+        self.world
+            .sc_call(
+                ScCallStep::new()
+                    .from(OWNER_ADDRESS_EXPR)
+                    .call(self.contract.set_token_id(
+                        managed_token_id!(KOSON_UNBONDING_META_TOKEN),
+                        UNBONDING_KOSON_KEY,
+                    )),
+            );
 
         self
     }
@@ -166,6 +183,21 @@ impl KosonStakingPoolState {
                 .multi_esdt_transfer(Self::get_txesdt_vec(payments))
                 .call(self.contract.stake_koson())
                 .expect(TxExpect::user_error(format!("str:{}", err_msg))),
+        );
+
+        self
+    }
+
+    pub fn stake_many_unchecked(
+        &mut self,
+        address_from: &str,
+        payments: Vec<(&str, u64)>,
+    ) -> &mut Self {
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(address_from)
+                .multi_esdt_transfer(Self::get_txesdt_vec(payments))
+                .call(self.contract.stake_koson()),
         );
 
         self
@@ -213,16 +245,31 @@ impl KosonStakingPoolState {
         self
     }
 
+    pub fn unstake_unchecked(&mut self, address_from: &str, unstake_amount: u64) -> &mut Self {
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(address_from)
+                .esdt_transfer(
+                    format!("str:{}", KOSON_REWARD_BEARING_TOKEN),
+                    0u64,
+                    unstake_amount,
+                )
+                .call(self.contract.unstake_koson()),
+        );
+
+        self
+    }
+
     pub fn claim_unstaked(
         &mut self,
         address_from: &str,
-        payments: Vec<(&str, u64)>,
+        payments: Vec<(&str, u64, u64)>,
         expected_payments: ManagedVec<StaticApi, EsdtTokenPayment<StaticApi>>,
     ) -> &mut Self {
         self.world.sc_call(
             ScCallStep::new()
                 .from(address_from)
-                .multi_esdt_transfer(Self::get_txesdt_vec(payments))
+                .multi_esdt_transfer(Self::get_meta_txesdt_vec(payments))
                 .call(self.contract.claim_unstaked())
                 .expect_value(expected_payments),
         );
@@ -230,15 +277,31 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn claim_rewards_expect_err(
+    pub fn claim_unstaked_unchecked(
         &mut self,
         address_from: &str,
-        payments: Vec<(&str, u64)>,
+        payments: Vec<(&str, u64, u64)>,
+    ) -> &mut Self {
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(address_from)
+                .multi_esdt_transfer(Self::get_meta_txesdt_vec(payments))
+                .call(self.contract.claim_unstaked()),
+        );
+
+        self
+    }
+
+    pub fn claim_unstaked_expect_err(
+        &mut self,
+        address_from: &str,
+        payments: Vec<(&str, u64, u64)>,
         err_msg: &str,
     ) -> &mut Self {
         self.world.sc_call(
             ScCallStep::new()
                 .from(address_from)
+                .multi_esdt_transfer(Self::get_meta_txesdt_vec(payments))
                 .call(self.contract.claim_unstaked())
                 .expect(TxExpect::user_error(format!("str:{}", err_msg))),
         );
@@ -291,6 +354,36 @@ impl KosonStakingPoolState {
         self
     }
 
+    pub fn check_koson_supply(&mut self, koson_token_id: &str, expected_value: u64) -> &mut Self {
+        self.world.sc_query(
+            ScQueryStep::new()
+                .call(
+                    self.contract
+                        .get_storage_koson_supply(managed_token_id!(koson_token_id)),
+                )
+                .expect_value(managed_biguint!(expected_value)),
+        );
+
+        self
+    }
+
+    pub fn check_staked_koson_supply(
+        &mut self,
+        staked_koson_token_id: &str,
+        expected_value: u64,
+    ) -> &mut Self {
+        self.world.sc_query(
+            ScQueryStep::new()
+                .call(
+                    self.contract
+                        .get_storage_staked_koson_supply(managed_token_id!(staked_koson_token_id)),
+                )
+                .expect_value(managed_biguint!(expected_value)),
+        );
+
+        self
+    }
+
     pub fn check_user_balance(&mut self, address: &str, token: &str, amount: u128) -> &mut Self {
         self.world
             .check_state_step(CheckStateStep::new().put_account(
@@ -335,6 +428,18 @@ impl KosonStakingPoolState {
             payments.push(TxESDT {
                 esdt_token_identifier: BytesValue::from(format!("str:{}", *token_id)),
                 nonce: U64Value::zero(),
+                esdt_value: BigUintValue::from(*amount),
+            })
+        }
+        payments
+    }
+
+    fn get_meta_txesdt_vec(vec_data: Vec<(&str, u64, u64)>) -> Vec<TxESDT> {
+        let mut payments = vec![];
+        for (token_id, nonce, amount) in vec_data.iter() {
+            payments.push(TxESDT {
+                esdt_token_identifier: BytesValue::from(format!("str:{}", *token_id)),
+                nonce: U64Value::from(*nonce),
                 esdt_value: BigUintValue::from(*amount),
             })
         }

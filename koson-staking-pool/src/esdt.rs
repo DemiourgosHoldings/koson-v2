@@ -1,4 +1,7 @@
-use crate::constants::errors::ERR_ALREADY_ISSUED;
+use crate::constants::{
+    config::{STAKED_KOSON_KEY, UNBONDING_KOSON_KEY, UNBONDING_KOSON_NONCE_NAME},
+    errors::ERR_ALREADY_ISSUED,
+};
 
 multiversx_sc::imports!();
 
@@ -7,7 +10,7 @@ pub trait EsdtModule: crate::storage::StorageModule {
     #[only_owner]
     #[payable("EGLD")]
     #[endpoint(issue)]
-    fn issue_token(&self, token_display_name: ManagedBuffer, token_ticker: ManagedBuffer) {
+    fn issue_token(&self, token_display_name: ManagedBuffer, token_ticker: ManagedBuffer, key: u8) {
         require!(self.staked_koson_token_id().is_empty(), ERR_ALREADY_ISSUED);
 
         let issue_cost = self.call_value().egld_value();
@@ -18,29 +21,38 @@ pub trait EsdtModule: crate::storage::StorageModule {
                 issue_cost.clone_value(),
                 token_display_name,
                 token_ticker,
-                EsdtTokenType::Meta,
+                match key {
+                    STAKED_KOSON_KEY => EsdtTokenType::Fungible,
+                    UNBONDING_KOSON_KEY => EsdtTokenType::Meta,
+                    _ => sc_panic!("Invalid issuance key"),
+                },
                 18,
             )
             .async_call()
-            .with_callback(self.callbacks().issue_token_callback())
+            .with_callback(self.callbacks().issue_token_callback(key))
             .call_and_exit();
     }
 
     #[only_owner]
-    #[endpoint(setStakedKosonTokenId)]
-    fn set_staked_koson_token_id(&self, token_id: TokenIdentifier) {
-        self.staked_koson_token_id().set(token_id);
+    #[endpoint(setTokenId)]
+    fn set_token_id(&self, token_id: TokenIdentifier, key: u8) {
+        match key {
+            STAKED_KOSON_KEY => self.staked_koson_token_id().set(token_id),
+            UNBONDING_KOSON_KEY => self.unbonding_koson_token_id().set(token_id),
+            _ => sc_panic!("Invalid issuance key"),
+        }
     }
 
     #[callback]
     fn issue_token_callback(
         &self,
         #[call_result] result: ManagedAsyncCallResult<EgldOrEsdtTokenIdentifier>,
+        key: u8,
     ) {
         match result {
             ManagedAsyncCallResult::Ok(token_id) => {
                 let token_id = token_id.unwrap_esdt();
-                self.set_staked_koson_token_id(token_id)
+                self.set_token_id(token_id, key)
             }
             ManagedAsyncCallResult::Err(_) => {
                 let caller = self.blockchain().get_owner_address();
@@ -63,10 +75,17 @@ pub trait EsdtModule: crate::storage::StorageModule {
 
     fn mint_meta_esdt<T: TopEncode>(
         &self,
-        _token_identifier: &TokenIdentifier,
-        _amount: &BigUint,
-        _metadata: T,
+        token_identifier: &TokenIdentifier,
+        amount: &BigUint,
+        metadata: T,
     ) -> EsdtTokenPayment {
-        todo!()
+        let nonce = self.send().esdt_nft_create_compact_named(
+            token_identifier,
+            amount,
+            &ManagedBuffer::from(UNBONDING_KOSON_NONCE_NAME),
+            &metadata,
+        );
+
+        EsdtTokenPayment::new(token_identifier.clone(), nonce, amount.clone())
     }
 }

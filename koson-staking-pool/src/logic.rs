@@ -49,30 +49,31 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
     }
 
     fn process_single_payment_stake(&self, payment: &EsdtTokenPayment) -> BigUint {
-        let payment_koson_supply = self.koson_supply(&payment.token_identifier).get();
-        let remaining_koson_tokens =
-            self.get_all_koson_token_ids_but_one(&payment.token_identifier);
-        let mut remaining_koson_supply = BigUint::zero();
+        // let payment_koson_supply = self.koson_supply(&payment.token_identifier).get();
+        // let remaining_koson_tokens =
+        //     self.get_all_koson_token_ids_but_one(&payment.token_identifier);
+        // let mut remaining_koson_supply = BigUint::zero();
 
-        for token_id in remaining_koson_tokens.iter() {
-            remaining_koson_supply += self.koson_supply(&token_id).get();
-        }
+        // for token_id in remaining_koson_tokens.iter() {
+        //     remaining_koson_supply += self.koson_supply(&token_id).get();
+        // }
 
-        let pool_index = self.get_pool_index();
+        // let pool_index = self.get_pool_index();
 
-        let staked_koson_amount_to_send = self.get_staked_koson_amount_out(
-            &payment.amount,
-            &payment_koson_supply,
-            &remaining_koson_supply,
-            &pool_index,
-        );
+        // let staked_koson_amount_to_send = self.get_staked_koson_amount_out(
+        //     &payment.amount,
+        //     &payment_koson_supply,
+        //     &remaining_koson_supply,
+        //     &pool_index,
+        // );
 
         self.staked_koson_supply(&self.staked_koson_token_id().get())
-            .update(|old_supply| *old_supply += &staked_koson_amount_to_send);
+            .update(|old_supply| *old_supply += &payment.amount);
         self.koson_supply(&payment.token_identifier)
             .update(|old_supply| *old_supply += &payment.amount);
 
-        staked_koson_amount_to_send
+        // staked_koson_amount_to_send
+        payment.amount.clone()
     }
 
     fn process_unstake(&self, payment: &EsdtTokenPayment) -> EsdtTokenPayment {
@@ -86,17 +87,14 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         self.burn_esdt(&payment.token_identifier, 0u64, &payment.amount);
         self.staked_koson_supply(&payment.token_identifier)
             .update(|old_supply| *old_supply -= &payment.amount);
-
-        let unbonding_koson_payment = self.mint_meta_esdt(
-            &unbonding_koson_token_id,
-            &payment.amount,
-            WrappedPayment::new(self.blockchain().get_block_epoch()),
-        );
-
         self.staked_koson_supply(&unbonding_koson_token_id)
             .update(|old_supply| *old_supply += &payment.amount);
 
-        unbonding_koson_payment
+        self.mint_meta_esdt(
+            &unbonding_koson_token_id,
+            &payment.amount,
+            WrappedPayment::new(self.blockchain().get_block_epoch()),
+        )
     }
 
     fn process_claim_unstaked(
@@ -121,7 +119,7 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
                 payment.token_nonce,
             );
 
-            let (remaining_amount, _) = token_metadata.compute_fee(
+            let (remaining_amount, _fee) = token_metadata.compute_fee(
                 &payment.amount,
                 self.unbonding_time_penalty().get(),
                 self.blockchain().get_block_epoch(),
@@ -130,17 +128,24 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             let unbonded_payments =
                 self.get_unbonded_koson_amounts_out(&remaining_amount, &total_staked_koson_supply);
 
+            // update koson supplies that are being sent back to the user with amounts after fee
             for unbonded_payment in unbonded_payments.iter() {
                 self.koson_supply(&unbonded_payment.token_identifier)
                     .update(|old_supply| *old_supply -= &unbonded_payment.amount);
                 payments_out.push(unbonded_payment);
             }
 
+            // update staked koson supply with the received amount pre-fee
             self.staked_koson_supply(&payment.token_identifier)
                 .update(|old_supply| {
                     *old_supply -= &payment.amount;
                 });
-            self.burn_esdt(&payment.token_identifier, 0u64, &payment.amount);
+
+            self.burn_esdt(
+                &payment.token_identifier,
+                payment.token_nonce,
+                &payment.amount,
+            );
         }
 
         payments_out
@@ -203,7 +208,6 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         for koson_token_id in self.koson_token_ids().iter() {
             let supply = self.koson_supply(&koson_token_id).get();
 
-            // TODO: decode the token metadata and compute actual amount and fee
             let amount_to_send = token_amount_in * &supply / total_staked_koson_supply;
             payments_out.push(EsdtTokenPayment::new(koson_token_id, 0u64, amount_to_send));
         }

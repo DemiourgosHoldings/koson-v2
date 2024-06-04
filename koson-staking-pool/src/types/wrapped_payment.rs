@@ -21,12 +21,13 @@ impl WrappedPayment {
         current_block_epoch: u64,
     ) -> (BigUint<M>, BigUint<M>) {
         let no_fee_epoch = self.mint_epoch + unbonding_time_penalty;
-        if current_block_epoch > no_fee_epoch {
+        if current_block_epoch >= no_fee_epoch {
             return (amount.clone(), BigUint::zero());
         }
 
         let feeable_epochs = no_fee_epoch - current_block_epoch;
-        let fee = amount * feeable_epochs * UNBONDING_MAX_FEE / UNBONDING_FEE_DENOMINATOR;
+        let fee = amount * feeable_epochs / unbonding_time_penalty * UNBONDING_MAX_FEE
+            / UNBONDING_FEE_DENOMINATOR;
 
         (amount - &fee, fee)
     }

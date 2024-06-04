@@ -3,6 +3,7 @@
 use constants::config::POOL_INDEX_DENOMINATOR;
 #[allow(unused_imports)]
 use multiversx_sc::imports::*;
+use types::supply_context::SupplyContext;
 
 pub mod constants;
 pub mod esdt;
@@ -80,5 +81,20 @@ pub trait KosonStakingPool:
     #[view(getPoolIndex)]
     fn get_pool_index_view(&self) -> (BigUint, BigUint) {
         (self.get_pool_index(), BigUint::from(POOL_INDEX_DENOMINATOR))
+    }
+
+    #[view(getSupplyContext)]
+    fn supply_context(&self) -> SupplyContext<Self::Api> {
+        todo!()
+    }
+
+    #[view(getStorageKosonSupply)]
+    fn get_storage_koson_supply(&self, koson_token_id: TokenIdentifier) -> BigUint {
+        self.koson_supply(&koson_token_id).get()
+    }
+
+    #[view(getStorageStakedKosonSupply)]
+    fn get_storage_staked_koson_supply(&self, staked_koson_token_id: TokenIdentifier) -> BigUint {
+        self.staked_koson_supply(&staked_koson_token_id).get()
     }
 }
