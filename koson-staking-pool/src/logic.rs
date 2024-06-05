@@ -49,30 +49,11 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
     }
 
     fn process_single_payment_stake(&self, payment: &EsdtTokenPayment) -> BigUint {
-        // let payment_koson_supply = self.koson_supply(&payment.token_identifier).get();
-        // let remaining_koson_tokens =
-        //     self.get_all_koson_token_ids_but_one(&payment.token_identifier);
-        // let mut remaining_koson_supply = BigUint::zero();
-
-        // for token_id in remaining_koson_tokens.iter() {
-        //     remaining_koson_supply += self.koson_supply(&token_id).get();
-        // }
-
-        // let pool_index = self.get_pool_index();
-
-        // let staked_koson_amount_to_send = self.get_staked_koson_amount_out(
-        //     &payment.amount,
-        //     &payment_koson_supply,
-        //     &remaining_koson_supply,
-        //     &pool_index,
-        // );
-
         self.staked_koson_supply(&self.staked_koson_token_id().get())
             .update(|old_supply| *old_supply += &payment.amount);
         self.koson_supply(&payment.token_identifier)
             .update(|old_supply| *old_supply += &payment.amount);
 
-        // staked_koson_amount_to_send
         payment.amount.clone()
     }
 
