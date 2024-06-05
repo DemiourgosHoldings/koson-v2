@@ -6,7 +6,7 @@ edition = "2021"
 publish = false
 
 [lib]
-path = "src/koson_factory.rs"
+path = "src/koson_factory_chrysopoeic.rs"
 
 [dependencies.multiversx-sc]
 version = "0.47.3"

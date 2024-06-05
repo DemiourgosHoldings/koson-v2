@@ -17,7 +17,7 @@ multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
 
 multiversx_sc_wasm_adapter::endpoints! {
-    koson_factory
+    koson_factory_chrysopoeic
     (
         init => init
         upgrade => upgrade
@@ -33,4 +33,4 @@ multiversx_sc_wasm_adapter::endpoints! {
     )
 }
 
-multiversx_sc_wasm_adapter::async_callback! { koson_factory }
+multiversx_sc_wasm_adapter::async_callback! { koson_factory_chrysopoeic }

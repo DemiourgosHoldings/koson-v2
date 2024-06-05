@@ -6,5 +6,5 @@ fn world() -> ScenarioWorld {
 
 #[test]
 fn empty_go() {
-    world().run("scenarios/koson_factory.scen.json");
+    world().run("scenarios/koson_factory_chrysopoeic.scen.json");
 }
