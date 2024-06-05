@@ -1,0 +1,12 @@
+[package]
+name = "koson-factory-universal-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.koson-factory-universal]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.47.3"
+default-features = false
