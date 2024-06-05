@@ -57,20 +57,21 @@ pub trait DistributionLogicModule:
 
     fn handle_distribution(&self) {
         let block_epoch = self.blockchain().get_block_epoch();
+        let last_distribution_epoch = self.last_distribution_epoch().get();
 
-        if self.last_distribution_epoch().get() == block_epoch {
-            sc_panic!(ERR_ALREADY_DISTRIBUTED);
-        }
-
+        let undistributed_amount =
+            self.get_total_undistributed_amount(last_distribution_epoch, block_epoch);
+        require!(
+            undistributed_amount > BigUint::zero(),
+            ERR_ALREADY_DISTRIBUTED
+        );
         let distribution_token = self.factory_token_id().get();
-        let epoch_distribution_amount = self.get_daily_distribution_amount();
 
-        self.mint_esdt(&distribution_token, &epoch_distribution_amount);
-        self.current_supply().update(|current_supply| {
-            *current_supply += &epoch_distribution_amount;
-        });
+        self.last_distribution_epoch().set(block_epoch);
 
-        self.distribute_to_list(&distribution_token, &epoch_distribution_amount);
+        self.mint_esdt(&distribution_token, &undistributed_amount);
+
+        self.distribute_to_list(&distribution_token, &undistributed_amount);
     }
 
     fn distribute_to_list(&self, token: &TokenIdentifier, total_amount: &BigUint) {
@@ -145,5 +146,28 @@ pub trait DistributionLogicModule:
         let current_supply = self.current_supply().get();
 
         BigUint::from(MAX_SUPPLY) - current_supply / EMISSION_DENOMINATOR
+    }
+
+    fn get_total_undistributed_amount(
+        &self,
+        last_distribution_epoch: u64,
+        current_epoch: u64,
+    ) -> BigUint {
+        let total_epochs = current_epoch - last_distribution_epoch;
+        if total_epochs == 0 {
+            return BigUint::zero();
+        }
+
+        let mut total_undistributed = BigUint::zero();
+
+        for _ in 0..total_epochs {
+            let epoch_distribution_amount = self.get_daily_distribution_amount();
+            self.current_supply().update(|current_supply| {
+                *current_supply += &epoch_distribution_amount;
+            });
+            total_undistributed += epoch_distribution_amount;
+        }
+
+        total_undistributed
     }
 }
