@@ -18,13 +18,13 @@ num-bigint = "0.4"
 version = "0.47.3"
 
 [dependencies.koson-staking-pool]
-path = "../koson-staking-pool"
+path = "../../koson-staking-pool"
 
 [dependencies.land-plot-staking]
-path = "../land-plot-staking"
+path = "../../land-plot-staking"
 
 [dependencies.soul-nft-staking]
-path = "../soul-nft-staking"
+path = "../../soul-nft-staking"
 
 [workspace]
 members = [
