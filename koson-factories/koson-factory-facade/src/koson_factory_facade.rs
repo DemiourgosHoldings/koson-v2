@@ -14,33 +14,41 @@ pub trait KosonFactoryFacade: factory_interactor::FactoryInteractor {
     fn upgrade(&self) {}
 
     #[only_owner]
-    #[endpoint(addFactoryAddresses)]
-    fn add_factory_addresses(&self, addresses: MultiValueManagedVec<ManagedAddress>) {
-        for address in addresses.iter() {
-            self.factory_address_list().insert(address.clone_value());
-        }
-    }
-
-    #[only_owner]
-    #[endpoint(removeFactoryAddresses)]
-    fn remove_factory_addresses(&self, addresses: MultiValueManagedVec<ManagedAddress>) {
-        for address in addresses.iter() {
-            self.factory_address_list().remove(&address);
-        }
+    #[endpoint(initConfig)]
+    fn init_config(
+        &self,
+        chrysopoeic_forge_address: ManagedAddress,
+        universal_forge_address: ManagedAddress,
+    ) {
+        self.chrysopoeic_forge_address()
+            .set(&chrysopoeic_forge_address);
+        self.universal_forge_address().set(&universal_forge_address);
     }
 
     #[endpoint(distribute)]
     fn distribute_factory_rewards(&self) {
+        // DO NOT CHANGE THE ORDER OF FACTORY ADDRESS LIST
+        // Universal forge rewards are based on the other factories daily emissions.
+        // If another factory goes first, the universal forge will distribute 0 rewards for that factory.
+
+        let mut factory_address_list = ManagedVec::new();
+        factory_address_list.push(self.universal_forge_address().get());
+        factory_address_list.push(self.chrysopoeic_forge_address().get());
+
         // only use 95% gas fee for distribution, keep 5% for facade logic execution
         let total_gas_fee = self.blockchain().get_gas_left() * 95 / 100;
-        let gas_per_distribution = total_gas_fee / self.factory_address_list().len() as u64;
+        let gas_per_distribution = total_gas_fee / factory_address_list.len() as u64;
 
-        for address in self.factory_address_list().iter() {
+        for address in factory_address_list.iter() {
             self.trigger_distribute_rewards(address, gas_per_distribution);
         }
     }
 
-    #[view(getFactoryAddressList)]
-    #[storage_mapper("factory_address_list")]
-    fn factory_address_list(&self) -> SetMapper<ManagedAddress>;
+    #[view(getChrysopoeicForgeAddress)]
+    #[storage_mapper("chrysopoeic_forge_address")]
+    fn chrysopoeic_forge_address(&self) -> SingleValueMapper<ManagedAddress>;
+
+    #[view(getUniversalForgeAddress)]
+    #[storage_mapper("universal_forge_address")]
+    fn universal_forge_address(&self) -> SingleValueMapper<ManagedAddress>;
 }
