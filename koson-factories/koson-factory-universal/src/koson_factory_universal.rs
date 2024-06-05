@@ -48,9 +48,6 @@ pub trait KosonFactory:
 
     #[view(getUndistributedAmount)]
     fn get_total_undistributed_amount_view(&self) -> BigUint {
-        let block_epoch = self.blockchain().get_block_epoch();
-        let last_distribution_epoch = self.last_distribution_epoch().get();
-
-        self.get_total_undistributed_amount(last_distribution_epoch, block_epoch)
+        self.get_total_undistributed_amount()
     }
 }

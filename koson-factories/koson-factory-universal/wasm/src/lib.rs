@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           11
+// Endpoints:                           12
 // Async Callback:                       1
-// Total number of exported functions:  13
+// Total number of exported functions:  14
 
 #![no_std]
 #![allow(internal_features)]
@@ -29,6 +29,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getCurrentSupply => current_supply
         getFactoryTokenIdentifier => factory_token_id
         getTotalDistributionPerAddress => total_distribution_per_address
+        getChrysopoeicForgeAddress => chrysopoeic_forge_address
         issue => issue_token
         setTokenId => set_token_id
     )

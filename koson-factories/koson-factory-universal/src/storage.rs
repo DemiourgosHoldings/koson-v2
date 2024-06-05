@@ -23,4 +23,8 @@ pub trait StorageModule {
     #[view(getTotalDistributionPerAddress)]
     #[storage_mapper("total_distribution_per_address")]
     fn total_distribution_per_address(&self) -> MapMapper<ManagedAddress<Self::Api>, BigUint>;
+
+    #[view(getChrysopoeicForgeAddress)]
+    #[storage_mapper("chrysopoeic_forge_address")]
+    fn chrysopoeic_forge_address(&self) -> SingleValueMapper<ManagedAddress<Self::Api>>;
 }
