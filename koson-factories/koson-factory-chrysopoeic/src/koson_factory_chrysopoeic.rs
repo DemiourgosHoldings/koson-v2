@@ -20,7 +20,10 @@ pub trait KosonFactory:
     + interactors::koson_staking_pool_interactor::KosonStakingPoolInteractor
 {
     #[init]
-    fn init(&self) {}
+    fn init(&self) {
+        self.last_distribution_epoch()
+            .set(self.blockchain().get_block_epoch());
+    }
 
     #[upgrade]
     fn upgrade(&self) {}
