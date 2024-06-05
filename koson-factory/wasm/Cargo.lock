@@ -21,6 +21,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed570934406eb16438a4e976b1b4500774099c13b8cb96eec99f620f05090ddf"
 
 [[package]]
+name = "dex-pair-sc"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+]
+
+[[package]]
 name = "endian-type"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -42,7 +49,10 @@ checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 name = "koson-factory"
 version = "0.0.0"
 dependencies = [
+ "koson-staking-pool",
+ "land-plot-staking",
  "multiversx-sc",
+ "soul-nft-staking",
 ]
 
 [[package]]
@@ -51,6 +61,21 @@ version = "0.0.0"
 dependencies = [
  "koson-factory",
  "multiversx-sc-wasm-adapter",
+]
+
+[[package]]
+name = "koson-staking-pool"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+]
+
+[[package]]
+name = "land-plot-staking"
+version = "0.0.0"
+dependencies = [
+ "dex-pair-sc",
+ "multiversx-sc",
 ]
 
 [[package]]
@@ -161,6 +186,14 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+
+[[package]]
+name = "soul-nft-staking"
+version = "0.0.0"
+dependencies = [
+ "dex-pair-sc",
+ "multiversx-sc",
+]
 
 [[package]]
 name = "syn"
