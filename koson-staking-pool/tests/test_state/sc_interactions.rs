@@ -224,7 +224,7 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn unstake_expect_err(
+    pub fn _unstake_expect_err(
         &mut self,
         address_from: &str,
         unstake_amount: u64,
@@ -277,7 +277,7 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn claim_unstaked_unchecked(
+    pub fn _claim_unstaked_unchecked(
         &mut self,
         address_from: &str,
         payments: Vec<(&str, u64, u64)>,
@@ -292,7 +292,7 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn claim_unstaked_expect_err(
+    pub fn _claim_unstaked_expect_err(
         &mut self,
         address_from: &str,
         payments: Vec<(&str, u64, u64)>,
@@ -324,7 +324,7 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn distribute_rewards_expect_err(
+    pub fn _distribute_rewards_expect_err(
         &mut self,
         address_from: &str,
         payments: Vec<(&str, u64)>,
@@ -384,7 +384,7 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn check_user_balance(&mut self, address: &str, token: &str, amount: u128) -> &mut Self {
+    pub fn _check_user_balance(&mut self, address: &str, token: &str, amount: u128) -> &mut Self {
         self.world
             .check_state_step(CheckStateStep::new().put_account(
                 address,
@@ -394,7 +394,7 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn check_user_nft_balance(
+    pub fn _check_user_nft_balance(
         &mut self,
         address: &str,
         token: &str,
