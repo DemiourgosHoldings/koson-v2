@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            2
-// Async Callback (empty):               1
-// Total number of exported functions:   4
+// Endpoints:                           10
+// Async Callback:                       1
+// Total number of exported functions:  12
 
 #![no_std]
 #![allow(internal_features)]
@@ -21,8 +21,16 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
-        test => test
+        setDistributionList => set_distribution_list
+        distribute => distribute
+        getDistributionList => distribution_list
+        getLastDistributionEpoch => last_distribution_epoch
+        getCurrentSupply => current_supply
+        getFactoryTokenIdentifier => factory_token_id
+        getTotalDistributionPerAddress => total_distribution_per_address
+        issue => issue_token
+        setTokenId => set_token_id
     )
 }
 
-multiversx_sc_wasm_adapter::async_callback_empty! {}
+multiversx_sc_wasm_adapter::async_callback! { koson_factory }

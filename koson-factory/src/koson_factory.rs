@@ -26,6 +26,7 @@ pub trait KosonFactory:
     fn upgrade(&self) {}
 
     #[only_owner]
+    #[allow_multiple_var_args]
     #[endpoint(setDistributionList)]
     fn set_distribution_list(
         &self,
