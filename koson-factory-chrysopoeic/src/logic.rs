@@ -1,3 +1,5 @@
+use crate::constants::{config::MAX_DISTRIBUTION_LEFTOVER_AMOUNT, errors::ERR_NOT_ALL_DISTRIBUTED};
+
 use super::{
     constants::{
         config::{EMISSION_DENOMINATOR, MAX_PERCENTAGE, MAX_SUPPLY},
@@ -11,7 +13,13 @@ use super::{
 multiversx_sc::imports!();
 
 #[multiversx_sc::module]
-pub trait DistributionLogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
+pub trait DistributionLogicModule:
+    crate::storage::StorageModule
+    + crate::esdt::EsdtModule
+    + crate::interactors::soul_staking_interactor::SoulStakingInteractor
+    + crate::interactors::land_plot_staking_interactor::LandPlotStakingInteractor
+    + crate::interactors::koson_staking_pool_interactor::KosonStakingPoolInteractor
+{
     fn handle_set_distribution_list(
         &self,
         addresses: ManagedVec<ManagedAddress>,
@@ -71,9 +79,17 @@ pub trait DistributionLogicModule: crate::storage::StorageModule + crate::esdt::
             .iter()
             .collect::<ManagedVec<Self::Api, DistributionListItem<Self::Api>>>();
 
+        let mut total_distributed = BigUint::zero();
+
         for distribution_item in distribution_list.iter() {
-            self.distribute_to_list_item(token, total_amount, distribution_item);
+            total_distributed +=
+                self.distribute_to_list_item(token, total_amount, distribution_item);
         }
+
+        require!(
+            total_amount - &total_distributed < MAX_DISTRIBUTION_LEFTOVER_AMOUNT,
+            ERR_NOT_ALL_DISTRIBUTED
+        );
     }
 
     fn distribute_to_list_item(
@@ -101,9 +117,20 @@ pub trait DistributionLogicModule: crate::storage::StorageModule + crate::esdt::
                 self.handle_direct_send(&distribution_item.target_address, distribution_payment)
             }
             DistributionType::Invalid => sc_panic!(ERR_INVALID_DISTRIBUTION_TYPE),
-            DistributionType::SoulStakingInteraction => todo!(),
-            DistributionType::LandPlotStakingInteraction => todo!(),
-            DistributionType::KosonStakingInteraction => todo!(),
+            DistributionType::SoulStakingInteraction => self.distribute_soul_staking_rewards(
+                distribution_item.target_address,
+                distribution_payment,
+            ),
+            DistributionType::LandPlotStakingInteraction => self
+                .distribute_land_plot_staking_rewards(
+                    distribution_item.target_address,
+                    distribution_payment,
+                ),
+            DistributionType::KosonStakingInteraction => self
+                .distribute_koson_staking_pool_rewards(
+                    distribution_item.target_address,
+                    distribution_payment,
+                ),
         };
 
         distribution_amount

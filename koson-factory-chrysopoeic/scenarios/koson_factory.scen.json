@@ -22,7 +22,7 @@
             "id": "deploy",
             "tx": {
                 "from": "address:owner",
-                "contractCode": "mxsc:../output/koson-factory.mxsc.json",
+                "contractCode": "mxsc:../output/koson-factory-chrysopoeic.mxsc.json",
                 "arguments": [],
                 "gasLimit": "5,000,000",
                 "gasPrice": "0"

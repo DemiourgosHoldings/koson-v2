@@ -46,7 +46,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
-name = "koson-factory"
+name = "koson-factory-chrysopoeic"
 version = "0.0.0"
 dependencies = [
  "koson-staking-pool",
@@ -56,10 +56,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "koson-factory-wasm"
+name = "koson-factory-chrysopoeic-wasm"
 version = "0.0.0"
 dependencies = [
- "koson-factory",
+ "koson-factory-chrysopoeic",
  "multiversx-sc-wasm-adapter",
 ]
 

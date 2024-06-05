@@ -1,10 +1,10 @@
 [package]
-name = "koson-factory-meta"
+name = "koson-factory-chrysopoeic-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
 
-[dependencies.koson-factory]
+[dependencies.koson-factory-chrysopoeic]
 path = ".."
 
 [dependencies.multiversx-sc-meta]

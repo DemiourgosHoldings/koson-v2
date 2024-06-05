@@ -830,7 +830,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "koson-factory"
+name = "koson-factory-chrysopoeic"
 version = "0.0.0"
 dependencies = [
  "koson-staking-pool",
@@ -842,10 +842,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "koson-factory-meta"
+name = "koson-factory-chrysopoeic-meta"
 version = "0.0.0"
 dependencies = [
- "koson-factory",
+ "koson-factory-chrysopoeic",
  "multiversx-sc-meta",
 ]
 
