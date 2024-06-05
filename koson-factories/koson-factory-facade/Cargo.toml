@@ -1,0 +1,27 @@
+[package]
+name = "koson-factory-facade"
+version = "0.0.0"
+authors = ["you"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/koson_factory_facade.rs"
+
+[dependencies.multiversx-sc]
+version = "0.47.3"
+
+[dependencies.koson-factory-chrysopoeic]
+path = "../koson-factory-chrysopoeic"
+
+[dev-dependencies]
+num-bigint = "0.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.47.3"
+
+[workspace]
+members = [
+    ".",
+    "meta",
+]
