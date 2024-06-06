@@ -145,7 +145,7 @@ pub trait DistributionLogicModule:
     fn get_daily_distribution_amount(&self) -> BigUint {
         let current_supply = self.current_supply().get();
 
-        BigUint::from(MAX_SUPPLY) - current_supply / EMISSION_DENOMINATOR
+        (BigUint::from(MAX_SUPPLY) - current_supply) / EMISSION_DENOMINATOR
     }
 
     fn get_total_undistributed_amount(
