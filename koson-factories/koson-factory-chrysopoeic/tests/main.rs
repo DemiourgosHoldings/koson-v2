@@ -22,7 +22,7 @@ fn test_deploy_all_and_config_full() {
 #[test]
 fn test_set_distribution_list() {
     let (addresses, percentages, distribution_types) =
-        test_state::helpers::get_simple_distribution_list();
+        test_state::helpers::get_direct_send_distribution_list();
     KosonFactoryState::new()
         .deploy()
         .init()

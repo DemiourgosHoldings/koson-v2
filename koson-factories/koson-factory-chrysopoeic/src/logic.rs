@@ -50,7 +50,7 @@ pub trait DistributionLogicModule:
         }
 
         require!(
-            total_percentage_sum == MAX_PERCENTAGE,
+            MAX_PERCENTAGE == total_percentage_sum,
             ERR_INCORRECT_PERCENTAGE
         );
     }
