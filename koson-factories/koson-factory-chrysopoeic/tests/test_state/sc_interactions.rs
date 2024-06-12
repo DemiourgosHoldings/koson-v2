@@ -1,12 +1,17 @@
 use super::{
-    world, KosonFactoryContract, KosonFactoryState, FACTORY_TKN_ID, KOSON_FACTORY_SC_ADDRESS,
-    OWNER_ADDRESS_EXPR, USER_1_ADDRESS_EXPR,
+    world, KosonFactoryContract, KosonFactoryState, KosonStakingContract, LandPlotStakingContract,
+    SoulStakingContract, FACTORY_TKN_ID, KOSON_FACTORY_SC_ADDRESS,
+    KOSON_STAKING_POOL_1_ADDRESS_EXPR, KOSON_STAKING_POOL_2_ADDRESS_EXPR,
+    KOSON_STAKING_POOL_3_ADDRESS_EXPR, KOSON_STAKING_POOL_4_ADDRESS_EXPR,
+    KOSON_STAKING_POOL_5_ADDRESS_EXPR, KOSON_STAKING_POOL_6_ADDRESS_EXPR,
+    LAND_PLOT_STAKING_POOL_ADDRESS_EXPR, OWNER_ADDRESS_EXPR, SOUL_STAKING_POOL_ADDRESS_EXPR,
+    USER_1_ADDRESS_EXPR,
 };
 
 use multiversx_sc::types::{BigUint, MultiValueManagedVecCounted};
 use multiversx_sc_scenario::{
     api::StaticApi,
-    managed_address, managed_biguint, managed_token_id,
+    managed_address, managed_token_id,
     scenario_model::{
         Account, AddressValue, CheckAccount, CheckStateStep, ScCallStep, ScDeployStep, ScQueryStep,
         SetStateStep, TxExpect,
@@ -21,14 +26,41 @@ impl KosonFactoryState {
         world.set_state_step(
             SetStateStep::new()
                 .new_token_identifier(format!("str:{}", FACTORY_TKN_ID))
-                .put_account(OWNER_ADDRESS_EXPR, Account::new().nonce(1))
+                .put_account(
+                    OWNER_ADDRESS_EXPR,
+                    Account::new().nonce(1).balance("100000000"),
+                )
                 .new_address(OWNER_ADDRESS_EXPR, 1, KOSON_FACTORY_SC_ADDRESS)
-                .put_account(USER_1_ADDRESS_EXPR, Account::new().nonce(1)),
+                .put_account(
+                    USER_1_ADDRESS_EXPR,
+                    Account::new().nonce(1).balance("100000000"),
+                ),
         );
 
         let contract = KosonFactoryContract::new(KOSON_FACTORY_SC_ADDRESS);
+        let koson_staking_1_contract = KosonStakingContract::new(KOSON_STAKING_POOL_1_ADDRESS_EXPR);
+        let koson_staking_2_contract = KosonStakingContract::new(KOSON_STAKING_POOL_2_ADDRESS_EXPR);
+        let koson_staking_3_contract = KosonStakingContract::new(KOSON_STAKING_POOL_3_ADDRESS_EXPR);
+        let koson_staking_4_contract = KosonStakingContract::new(KOSON_STAKING_POOL_4_ADDRESS_EXPR);
+        let koson_staking_5_contract = KosonStakingContract::new(KOSON_STAKING_POOL_5_ADDRESS_EXPR);
+        let koson_staking_6_contract = KosonStakingContract::new(KOSON_STAKING_POOL_6_ADDRESS_EXPR);
+        let soul_staking_contract = SoulStakingContract::new(SOUL_STAKING_POOL_ADDRESS_EXPR);
+        let land_plot_staking_contract =
+            LandPlotStakingContract::new(LAND_PLOT_STAKING_POOL_ADDRESS_EXPR);
 
-        Self { world, contract }
+        Self {
+            world,
+            contract,
+
+            koson_staking_1_contract,
+            koson_staking_2_contract,
+            koson_staking_3_contract,
+            koson_staking_4_contract,
+            koson_staking_5_contract,
+            koson_staking_6_contract,
+            soul_staking_contract,
+            land_plot_staking_contract,
+        }
     }
 
     pub fn deploy(&mut self) -> &mut Self {
@@ -54,11 +86,8 @@ impl KosonFactoryState {
                 esdt_roles.clone(),
             );
 
-        self.world.set_state_step(
-            SetStateStep::new()
-                .new_address(OWNER_ADDRESS_EXPR, 2, KOSON_FACTORY_SC_ADDRESS)
-                .put_account(KOSON_FACTORY_SC_ADDRESS, acc),
-        );
+        self.world
+            .set_state_step(SetStateStep::new().put_account(KOSON_FACTORY_SC_ADDRESS, acc));
 
         self
     }
