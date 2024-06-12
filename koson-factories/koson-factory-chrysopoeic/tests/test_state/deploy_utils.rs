@@ -12,12 +12,13 @@ use multiversx_sc_scenario::{
     scenario_model::{Account, ScCallStep, ScDeployStep, SetStateStep},
 };
 
-use koson_staking_pool::ProxyTrait as _;
+use koson_staking_pool::{esdt::ProxyTrait as _, ProxyTrait as _};
 use land_plot_staking::ProxyTrait as _;
 use soul_nft_staking::ProxyTrait as _;
 
 pub const NFT_TOKEN_ID: &str = "NFT-abcdef";
 pub const SFT_TOKEN_ID: &str = "SFT-abcdef";
+pub const KOSON_REWARD_BEARING_TOKEN: &str = "RKOSON-123456";
 
 impl KosonFactoryState {
     pub fn deploy_all(&mut self) -> &mut Self {
@@ -36,6 +37,7 @@ impl KosonFactoryState {
             .init_land_plot_staking()
             .init_soul_staking()
             .add_balances()
+            .set_koson_staking_token_ids()
             .stake_balances();
 
         self
@@ -43,6 +45,14 @@ impl KosonFactoryState {
 
     fn init_koson_staking_pool(&mut self, pool_index: u8) -> &mut Self {
         let nonce = pool_index as u64 * 2;
+
+        let esdt_roles = vec![
+            "ESDTRoleLocalBurn".to_string(),
+            "ESDTRoleLocalMint".to_string(),
+            "ESDTRoleNFTCreate".to_string(),
+            "ESDTRoleNFTBurn".to_string(),
+        ];
+
         match pool_index {
             1 => {
                 self.world.set_state_step(SetStateStep::new().new_address(
@@ -56,8 +66,24 @@ impl KosonFactoryState {
                 self.world.sc_deploy(
                     ScDeployStep::new()
                         .from(OWNER_ADDRESS_EXPR)
-                        .code(code)
+                        .code(code.clone())
                         .call(self.koson_staking_1_contract.init()),
+                );
+                let acc = Account::new()
+                    .owner(OWNER_ADDRESS_EXPR)
+                    .code(code)
+                    .esdt_roles(
+                        format!("str:{}", KOSON_REWARD_BEARING_TOKEN).as_str(),
+                        esdt_roles.clone(),
+                    )
+                    .esdt_roles(
+                        format!("str:{}", FACTORY_TKN_ID).as_str(),
+                        esdt_roles.clone(),
+                    );
+                self.world.set_state_step(
+                    SetStateStep::new()
+                        .new_token_identifier(format!("str:{}", KOSON_REWARD_BEARING_TOKEN))
+                        .put_account(KOSON_STAKING_POOL_1_ADDRESS_EXPR, acc),
                 );
                 self.world
                     .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
@@ -81,8 +107,22 @@ impl KosonFactoryState {
                 self.world.sc_deploy(
                     ScDeployStep::new()
                         .from(OWNER_ADDRESS_EXPR)
-                        .code(code)
+                        .code(code.clone())
                         .call(self.koson_staking_2_contract.init()),
+                );
+                let acc = Account::new()
+                    .owner(OWNER_ADDRESS_EXPR)
+                    .code(code)
+                    .esdt_roles(
+                        format!("str:{}", KOSON_REWARD_BEARING_TOKEN).as_str(),
+                        esdt_roles.clone(),
+                    )
+                    .esdt_roles(
+                        format!("str:{}", FACTORY_TKN_ID).as_str(),
+                        esdt_roles.clone(),
+                    );
+                self.world.set_state_step(
+                    SetStateStep::new().put_account(KOSON_STAKING_POOL_2_ADDRESS_EXPR, acc),
                 );
                 self.world
                     .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
@@ -106,8 +146,22 @@ impl KosonFactoryState {
                 self.world.sc_deploy(
                     ScDeployStep::new()
                         .from(OWNER_ADDRESS_EXPR)
-                        .code(code)
+                        .code(code.clone())
                         .call(self.koson_staking_3_contract.init()),
+                );
+                let acc = Account::new()
+                    .owner(OWNER_ADDRESS_EXPR)
+                    .code(code)
+                    .esdt_roles(
+                        format!("str:{}", KOSON_REWARD_BEARING_TOKEN).as_str(),
+                        esdt_roles.clone(),
+                    )
+                    .esdt_roles(
+                        format!("str:{}", FACTORY_TKN_ID).as_str(),
+                        esdt_roles.clone(),
+                    );
+                self.world.set_state_step(
+                    SetStateStep::new().put_account(KOSON_STAKING_POOL_3_ADDRESS_EXPR, acc),
                 );
                 self.world
                     .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
@@ -131,8 +185,22 @@ impl KosonFactoryState {
                 self.world.sc_deploy(
                     ScDeployStep::new()
                         .from(OWNER_ADDRESS_EXPR)
-                        .code(code)
+                        .code(code.clone())
                         .call(self.koson_staking_4_contract.init()),
+                );
+                let acc = Account::new()
+                    .owner(OWNER_ADDRESS_EXPR)
+                    .code(code)
+                    .esdt_roles(
+                        format!("str:{}", KOSON_REWARD_BEARING_TOKEN).as_str(),
+                        esdt_roles.clone(),
+                    )
+                    .esdt_roles(
+                        format!("str:{}", FACTORY_TKN_ID).as_str(),
+                        esdt_roles.clone(),
+                    );
+                self.world.set_state_step(
+                    SetStateStep::new().put_account(KOSON_STAKING_POOL_4_ADDRESS_EXPR, acc),
                 );
                 self.world
                     .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
@@ -156,8 +224,22 @@ impl KosonFactoryState {
                 self.world.sc_deploy(
                     ScDeployStep::new()
                         .from(OWNER_ADDRESS_EXPR)
-                        .code(code)
+                        .code(code.clone())
                         .call(self.koson_staking_5_contract.init()),
+                );
+                let acc = Account::new()
+                    .owner(OWNER_ADDRESS_EXPR)
+                    .code(code)
+                    .esdt_roles(
+                        format!("str:{}", KOSON_REWARD_BEARING_TOKEN).as_str(),
+                        esdt_roles.clone(),
+                    )
+                    .esdt_roles(
+                        format!("str:{}", FACTORY_TKN_ID).as_str(),
+                        esdt_roles.clone(),
+                    );
+                self.world.set_state_step(
+                    SetStateStep::new().put_account(KOSON_STAKING_POOL_5_ADDRESS_EXPR, acc),
                 );
                 self.world
                     .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
@@ -181,9 +263,25 @@ impl KosonFactoryState {
                 self.world.sc_deploy(
                     ScDeployStep::new()
                         .from(OWNER_ADDRESS_EXPR)
-                        .code(code)
+                        .code(code.clone())
                         .call(self.koson_staking_6_contract.init()),
                 );
+
+                let acc = Account::new()
+                    .owner(OWNER_ADDRESS_EXPR)
+                    .code(code)
+                    .esdt_roles(
+                        format!("str:{}", KOSON_REWARD_BEARING_TOKEN).as_str(),
+                        esdt_roles.clone(),
+                    )
+                    .esdt_roles(
+                        format!("str:{}", FACTORY_TKN_ID).as_str(),
+                        esdt_roles.clone(),
+                    );
+                self.world.set_state_step(
+                    SetStateStep::new().put_account(KOSON_STAKING_POOL_6_ADDRESS_EXPR, acc),
+                );
+
                 self.world
                     .sc_call(ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
                         self.koson_staking_6_contract.init_config(
@@ -276,7 +374,8 @@ impl KosonFactoryState {
     fn add_balances(&mut self) -> &mut Self {
         let account = Account::new()
             .esdt_nft_balance(format!("str:{}", NFT_TOKEN_ID).as_str(), 1, "1", Some(""))
-            .esdt_nft_balance(format!("str:{}", SFT_TOKEN_ID).as_str(), 1, "100", Some(""));
+            .esdt_nft_balance(format!("str:{}", SFT_TOKEN_ID).as_str(), 1, "100", Some(""))
+            .esdt_balance(format!("str:{}", FACTORY_TKN_ID).as_str(), "6");
 
         self.world.set_state_step(
             SetStateStep::new()
@@ -292,6 +391,43 @@ impl KosonFactoryState {
         self.world.sc_call(
             ScCallStep::new()
                 .from(OWNER_ADDRESS_EXPR)
+                .esdt_transfer(format!("str:{}", FACTORY_TKN_ID), 0, "1")
+                .call(self.koson_staking_1_contract.stake_koson()),
+        );
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .esdt_transfer(format!("str:{}", FACTORY_TKN_ID), 0, "1")
+                .call(self.koson_staking_2_contract.stake_koson()),
+        );
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .esdt_transfer(format!("str:{}", FACTORY_TKN_ID), 0, "1")
+                .call(self.koson_staking_3_contract.stake_koson()),
+        );
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .esdt_transfer(format!("str:{}", FACTORY_TKN_ID), 0, "1")
+                .call(self.koson_staking_4_contract.stake_koson()),
+        );
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .esdt_transfer(format!("str:{}", FACTORY_TKN_ID), 0, "1")
+                .call(self.koson_staking_5_contract.stake_koson()),
+        );
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
+                .esdt_transfer(format!("str:{}", FACTORY_TKN_ID), 0, "1")
+                .call(self.koson_staking_6_contract.stake_koson()),
+        );
+
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(OWNER_ADDRESS_EXPR)
                 .esdt_transfer(format!("str:{}", NFT_TOKEN_ID), 1, "1")
                 .call(self.soul_staking_contract.stake_souls()),
         );
@@ -301,6 +437,52 @@ impl KosonFactoryState {
                 .from(OWNER_ADDRESS_EXPR)
                 .esdt_transfer(format!("str:{}", SFT_TOKEN_ID), 1, "100")
                 .call(self.land_plot_staking_contract.stake_land_plots()),
+        );
+
+        self
+    }
+
+    fn set_koson_staking_token_ids(&mut self) -> &mut Self {
+        self.world.sc_call(
+            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
+                self.koson_staking_1_contract
+                    .set_token_id(managed_token_id!(KOSON_REWARD_BEARING_TOKEN), 1),
+            ),
+        );
+
+        self.world.sc_call(
+            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
+                self.koson_staking_2_contract
+                    .set_token_id(managed_token_id!(KOSON_REWARD_BEARING_TOKEN), 1),
+            ),
+        );
+
+        self.world.sc_call(
+            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
+                self.koson_staking_3_contract
+                    .set_token_id(managed_token_id!(KOSON_REWARD_BEARING_TOKEN), 1),
+            ),
+        );
+
+        self.world.sc_call(
+            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
+                self.koson_staking_4_contract
+                    .set_token_id(managed_token_id!(KOSON_REWARD_BEARING_TOKEN), 1),
+            ),
+        );
+
+        self.world.sc_call(
+            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
+                self.koson_staking_5_contract
+                    .set_token_id(managed_token_id!(KOSON_REWARD_BEARING_TOKEN), 1),
+            ),
+        );
+
+        self.world.sc_call(
+            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
+                self.koson_staking_6_contract
+                    .set_token_id(managed_token_id!(KOSON_REWARD_BEARING_TOKEN), 1),
+            ),
         );
 
         self
