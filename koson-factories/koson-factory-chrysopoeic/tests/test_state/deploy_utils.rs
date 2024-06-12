@@ -1,9 +1,9 @@
 use super::{
-    KosonFactoryState, FACTORY_TKN_ID, IGNORED_TKN_ID, KOSON_FACTORY_SC_ADDRESS,
-    KOSON_STAKING_POOL_1_ADDRESS_EXPR, KOSON_STAKING_POOL_2_ADDRESS_EXPR,
-    KOSON_STAKING_POOL_3_ADDRESS_EXPR, KOSON_STAKING_POOL_4_ADDRESS_EXPR,
-    KOSON_STAKING_POOL_5_ADDRESS_EXPR, KOSON_STAKING_POOL_6_ADDRESS_EXPR,
-    LAND_PLOT_STAKING_POOL_ADDRESS_EXPR, OWNER_ADDRESS_EXPR, SOUL_STAKING_POOL_ADDRESS_EXPR,
+    KosonFactoryState, FACTORY_TKN_ID, IGNORED_TKN_ID, KOSON_STAKING_POOL_1_ADDRESS_EXPR,
+    KOSON_STAKING_POOL_2_ADDRESS_EXPR, KOSON_STAKING_POOL_3_ADDRESS_EXPR,
+    KOSON_STAKING_POOL_4_ADDRESS_EXPR, KOSON_STAKING_POOL_5_ADDRESS_EXPR,
+    KOSON_STAKING_POOL_6_ADDRESS_EXPR, LAND_PLOT_STAKING_POOL_ADDRESS_EXPR, OWNER_ADDRESS_EXPR,
+    SOUL_STAKING_POOL_ADDRESS_EXPR,
 };
 
 use multiversx_sc::types::{Address, MultiValueManagedVec, MultiValueManagedVecCounted};
@@ -23,9 +23,9 @@ impl KosonFactoryState {
     pub fn deploy_all(&mut self) -> &mut Self {
         // IMPORTANT!
         // If you want to change the order of the contracts, add or remove interactions, consider the below information first:
-        // each init_koson_staking_pool increases account nonce by 2. First deploy nonce is 2, the setup increases the nonce to 3, then the next deploy nonce is 4 and so on
+        // each init_<> fn call increases account nonce by 2. First deploy nonce is 2, the setup increases the nonce to 3, then the next deploy nonce is 4 and so on
         // this means that the nonce for the first pool is 2, for the second pool is 4, for the third pool is 6, for the fourth pool is 8, for the fifth pool is 10, for the sixth pool is 12
-        // and for soul staking we get deploy nonce 14, and for land plot staking we get deploy nonce 16
+        // and for land plot staking we get deploy nonce 14, and for soul staking we get deploy nonce 16
         self.deploy()
             .init_koson_staking_pool(1)
             .init_koson_staking_pool(2)
