@@ -29,23 +29,22 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         )
     }
 
-    fn send_payment_non_zero(&self, payment: EsdtTokenPayment) {
-        require!(payment.amount > 0, ERR_PAYMENT_AMOUNT_ZERO);
-        self.send().direct_multi(
-            &self.blockchain().get_caller(),
-            &ManagedVec::from_single_item(payment),
-        );
+    fn send_payment_non_zero(&self, receiver: &ManagedAddress, payment: EsdtTokenPayment) {
+        self.send_multi_payments_non_zero(receiver, &ManagedVec::from_single_item(payment));
     }
 
-    fn send_multi_payments_non_zero(&self, payments: &ManagedVec<EsdtTokenPayment>) {
+    fn send_multi_payments_non_zero(
+        &self,
+        receiver: &ManagedAddress,
+        payments: &ManagedVec<EsdtTokenPayment>,
+    ) {
         let zero_amount_payments: ManagedVec<EsdtTokenPayment> = payments
             .into_iter()
             .filter(|payment| payment.amount == 0)
             .collect();
         require!(zero_amount_payments.is_empty(), ERR_PAYMENT_AMOUNT_ZERO);
 
-        self.send()
-            .direct_multi(&self.blockchain().get_caller(), payments);
+        self.send().direct_multi(receiver, payments);
     }
 
     fn process_single_payment_stake(&self, payment: &EsdtTokenPayment) -> BigUint {

@@ -334,6 +334,26 @@ impl KosonV2NftStakingContractState {
         self
     }
 
+    pub fn stake_many_for_user(
+        &mut self,
+        address_from: &str,
+        target_user_address: &str,
+        payments: Vec<(&str, u64)>,
+        expected_stake_score: u64,
+    ) -> &mut Self {
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(address_from)
+                .multi_esdt_transfer(Self::get_txesdt_vec(payments))
+                .call(self.contract.stake_souls_for_user(managed_address!(
+                    &AddressValue::from(target_user_address).to_address()
+                )))
+                .expect_value(managed_biguint!(expected_stake_score)),
+        );
+
+        self
+    }
+
     pub fn stake_many_expect_err(
         &mut self,
         address_from: &str,

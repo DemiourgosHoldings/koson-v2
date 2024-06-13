@@ -6,7 +6,7 @@ use multiversx_sc_scenario::{managed_biguint, managed_token_id};
 
 use crate::test_state::{
     KosonStakingPoolState, INVALID_ESDT_TOKEN_ID, KOSON_ANCIENT_TOKEN_ID, KOSON_ESOTERIC_TOKEN_ID,
-    KOSON_PRIMORDIAL_TOKEN_ID, KOSON_REWARD_BEARING_TOKEN, USER_1_ADDRESS_EXPR,
+    KOSON_PRIMORDIAL_TOKEN_ID, KOSON_REWARD_BEARING_TOKEN, OWNER_ADDRESS_EXPR, USER_1_ADDRESS_EXPR,
 };
 
 #[test]
@@ -19,15 +19,19 @@ fn simple_single_stake() {
         let stake_transfer = vec![(token_id, 1u64)];
 
         let mut state = KosonStakingPoolState::new();
-        state.deploy().init().stake_many(
-            USER_1_ADDRESS_EXPR,
-            stake_transfer,
-            EsdtTokenPayment::new(
-                managed_token_id!(KOSON_REWARD_BEARING_TOKEN),
-                0u64,
-                managed_biguint!(1),
-            ),
-        );
+        state
+            .deploy()
+            .init()
+            .stake_many(
+                USER_1_ADDRESS_EXPR,
+                stake_transfer,
+                EsdtTokenPayment::new(
+                    managed_token_id!(KOSON_REWARD_BEARING_TOKEN),
+                    0u64,
+                    managed_biguint!(1),
+                ),
+            )
+            .check_user_balance(USER_1_ADDRESS_EXPR, KOSON_REWARD_BEARING_TOKEN, 1);
     }
 }
 
@@ -92,4 +96,31 @@ fn stake_invalid_token_fails() {
         stake_transfer,
         ERR_PAYMENT_NOT_ALLOWED,
     );
+}
+
+#[test]
+fn simple_single_stake_for_user() {
+    for token_id in [
+        KOSON_PRIMORDIAL_TOKEN_ID,
+        KOSON_ANCIENT_TOKEN_ID,
+        KOSON_ESOTERIC_TOKEN_ID,
+    ] {
+        let stake_transfer = vec![(token_id, 1u64)];
+
+        let mut state = KosonStakingPoolState::new();
+        state
+            .deploy()
+            .init()
+            .stake_many_for_user(
+                USER_1_ADDRESS_EXPR,
+                OWNER_ADDRESS_EXPR,
+                stake_transfer,
+                EsdtTokenPayment::new(
+                    managed_token_id!(KOSON_REWARD_BEARING_TOKEN),
+                    0u64,
+                    managed_biguint!(1),
+                ),
+            )
+            .check_user_balance(OWNER_ADDRESS_EXPR, KOSON_REWARD_BEARING_TOKEN, 1);
+    }
 }

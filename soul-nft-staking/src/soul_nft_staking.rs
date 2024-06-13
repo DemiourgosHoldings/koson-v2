@@ -75,10 +75,17 @@ pub trait SoulNftStaking:
     #[endpoint(stake)]
     fn stake_souls(&self) -> BigUint {
         let caller = self.blockchain().get_caller();
+
+        self.stake_souls_for_user(caller)
+    }
+
+    #[payable("*")]
+    #[endpoint(stakeForUser)]
+    fn stake_souls_for_user(&self, user: ManagedAddress) -> BigUint {
         let payments = self.call_value().all_esdt_transfers();
 
-        self.store_unclaimed_reward(&caller);
-        self.process_soul_stake_payment(&caller, &payments)
+        self.store_unclaimed_reward(&user);
+        self.process_soul_stake_payment(&user, &payments)
     }
 
     #[payable("*")]

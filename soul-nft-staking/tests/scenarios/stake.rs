@@ -140,7 +140,7 @@ fn stake_updates_stake_epoch() {
         .stake_many(USER_1_ADDRESS_EXPR, stake_transfer_1, ORIGIN_SOULS_SCORE)
         .check_stake_epoch(ORIGIN_SOULS_TOKEN_IDS[0], 1, 0)
         .set_block_epoch(1)
-        .check_stake_epoch(USER_1_ADDRESS_EXPR, 1, 0)
+        .check_stake_epoch(ORIGIN_SOULS_TOKEN_IDS[0], 1, 0)
         .stake_many(USER_1_ADDRESS_EXPR, stake_transfer_2, ORIGIN_SOULS_SCORE)
         .check_stake_epoch(ORIGIN_SOULS_TOKEN_IDS[0], 2, 1);
 }
@@ -155,4 +155,24 @@ fn stake_invalid_token_fails() {
         stake_transfer,
         ERR_NOT_A_SOUL,
     );
+}
+
+#[test]
+fn staking_on_behalf_of_an_user() {
+    let stake_transfer_1 = vec![(ORIGIN_SOULS_TOKEN_IDS[0], 1)]; // staked for sender's address
+    let stake_transfer_2 = vec![(ORIGIN_SOULS_TOKEN_IDS[0], 2)]; // staked for owner's address
+
+    KosonV2NftStakingContractState::new()
+        .deploy()
+        .init()
+        .stake_many(USER_1_ADDRESS_EXPR, stake_transfer_1, ORIGIN_SOULS_SCORE)
+        .check_stake_epoch(ORIGIN_SOULS_TOKEN_IDS[0], 1, 0)
+        .stake_many_for_user(
+            USER_1_ADDRESS_EXPR,
+            OWNER_ADDRESS_EXPR,
+            stake_transfer_2,
+            ORIGIN_SOULS_SCORE,
+        )
+        .check_user_score(USER_1_ADDRESS_EXPR, ORIGIN_SOULS_SCORE)
+        .check_user_score(OWNER_ADDRESS_EXPR, ORIGIN_SOULS_SCORE);
 }

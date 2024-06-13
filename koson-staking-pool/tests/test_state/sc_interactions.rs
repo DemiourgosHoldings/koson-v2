@@ -8,10 +8,10 @@ use super::{
 use multiversx_sc::types::{EsdtTokenPayment, ManagedVec, MultiValueManagedVec};
 use multiversx_sc_scenario::{
     api::StaticApi,
-    managed_biguint, managed_token_id,
+    managed_address, managed_biguint, managed_token_id,
     scenario_model::{
-        Account, BigUintValue, BytesValue, CheckAccount, CheckStateStep, ScCallStep, ScDeployStep,
-        ScQueryStep, SetStateStep, TxESDT, TxExpect, U64Value,
+        Account, AddressValue, BigUintValue, BytesValue, CheckAccount, CheckStateStep, ScCallStep,
+        ScDeployStep, ScQueryStep, SetStateStep, TxESDT, TxExpect, U64Value,
     },
 };
 
@@ -165,6 +165,26 @@ impl KosonStakingPoolState {
                 .from(address_from)
                 .multi_esdt_transfer(Self::get_txesdt_vec(payments))
                 .call(self.contract.stake_koson())
+                .expect_value(expected_payment),
+        );
+
+        self
+    }
+
+    pub fn stake_many_for_user(
+        &mut self,
+        address_from: &str,
+        target_user: &str,
+        payments: Vec<(&str, u64)>,
+        expected_payment: EsdtTokenPayment<StaticApi>,
+    ) -> &mut Self {
+        self.world.sc_call(
+            ScCallStep::new()
+                .from(address_from)
+                .multi_esdt_transfer(Self::get_txesdt_vec(payments))
+                .call(self.contract.stake_koson_for_user(managed_address!(
+                    &AddressValue::from(target_user).to_address()
+                )))
                 .expect_value(expected_payment),
         );
 
@@ -384,7 +404,7 @@ impl KosonStakingPoolState {
         self
     }
 
-    pub fn _check_user_balance(&mut self, address: &str, token: &str, amount: u128) -> &mut Self {
+    pub fn check_user_balance(&mut self, address: &str, token: &str, amount: u128) -> &mut Self {
         self.world
             .check_state_step(CheckStateStep::new().put_account(
                 address,

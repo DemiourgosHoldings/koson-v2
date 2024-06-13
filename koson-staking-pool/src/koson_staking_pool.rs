@@ -38,10 +38,18 @@ pub trait KosonStakingPool:
     #[payable("*")]
     #[endpoint(stake)]
     fn stake_koson(&self) -> EsdtTokenPayment {
+        let caller = self.blockchain().get_caller();
+
+        self.stake_koson_for_user(caller)
+    }
+
+    #[payable("*")]
+    #[endpoint(stakeForUser)]
+    fn stake_koson_for_user(&self, user: ManagedAddress) -> EsdtTokenPayment {
         let payments = self.call_value().all_esdt_transfers();
 
         let staked_koson_payment = self.process_stake(&payments);
-        self.send_payment_non_zero(staked_koson_payment.clone());
+        self.send_payment_non_zero(&user, staked_koson_payment.clone());
 
         staked_koson_payment
     }
@@ -49,10 +57,12 @@ pub trait KosonStakingPool:
     #[payable("*")]
     #[endpoint(startUnstake)]
     fn unstake_koson(&self) -> EsdtTokenPayment {
+        let caller = self.blockchain().get_caller();
         let payment = self.call_value().single_esdt();
+
         let unbonding_koson_payment = self.process_unstake(&payment);
 
-        self.send_payment_non_zero(unbonding_koson_payment.clone());
+        self.send_payment_non_zero(&caller, unbonding_koson_payment.clone());
 
         unbonding_koson_payment
     }
@@ -60,10 +70,11 @@ pub trait KosonStakingPool:
     #[payable("*")]
     #[endpoint(claimUnstaked)]
     fn claim_unstaked(&self) -> ManagedVec<EsdtTokenPayment> {
+        let caller = self.blockchain().get_caller();
         let payments = self.call_value().all_esdt_transfers();
 
         let outgoing_payments = self.process_claim_unstaked(&payments);
-        self.send_multi_payments_non_zero(&outgoing_payments);
+        self.send_multi_payments_non_zero(&caller, &outgoing_payments);
 
         outgoing_payments
     }

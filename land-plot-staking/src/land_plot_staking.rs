@@ -48,10 +48,17 @@ pub trait LandPlotStaking:
     #[endpoint(stake)]
     fn stake_land_plots(&self) -> BigUint {
         let caller = self.blockchain().get_caller();
+
+        self.stake_land_plots_for_user(caller)
+    }
+
+    #[payable("*")]
+    #[endpoint(stakeForUser)]
+    fn stake_land_plots_for_user(&self, user: ManagedAddress) -> BigUint {
         let payments = self.call_value().all_esdt_transfers();
 
-        self.store_unclaimed_reward(&caller);
-        self.process_land_plot_stake_payment(&caller, &payments)
+        self.store_unclaimed_reward(&user);
+        self.process_land_plot_stake_payment(&user, &payments)
     }
 
     #[payable("*")]

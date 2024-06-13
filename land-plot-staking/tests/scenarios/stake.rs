@@ -162,3 +162,29 @@ fn stake_invalid_token_fails() {
         ERR_NOT_A_LAND_PLOT,
     );
 }
+
+#[test]
+fn stake_on_behalf_of_another_user() {
+    let set_score = LAND_PLOT_SCORES.iter().sum::<u64>();
+    let stake_transfer = vec![
+        (NFT_STAKING_TOKEN_ID, 1, 1),
+        (NFT_STAKING_TOKEN_ID, 2, 1),
+        (NFT_STAKING_TOKEN_ID, 3, 1),
+        (NFT_STAKING_TOKEN_ID, 4, 1),
+        (NFT_STAKING_TOKEN_ID, 5, 1),
+    ];
+
+    let mut state = KosonV2NftStakingContractState::new();
+    state
+        .deploy()
+        .init()
+        .stake_many(USER_1_ADDRESS_EXPR, stake_transfer.clone(), set_score)
+        .stake_many_for_user(
+            USER_1_ADDRESS_EXPR,
+            OWNER_ADDRESS_EXPR,
+            stake_transfer,
+            set_score,
+        )
+        .check_user_score(USER_1_ADDRESS_EXPR, set_score)
+        .check_user_score(OWNER_ADDRESS_EXPR, set_score);
+}
