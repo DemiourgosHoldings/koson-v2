@@ -1,0 +1,12 @@
+[package]
+name = "assets-remapper-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.assets-remapper]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.47.3"
+default-features = false
