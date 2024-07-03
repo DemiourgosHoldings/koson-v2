@@ -1,9 +1,9 @@
 #![no_std]
 
-use constants::config::POOL_INDEX_DENOMINATOR;
+use constants::config::{POOL_INDEX_DENOMINATOR, UNBONDING_MAX_FEE};
 #[allow(unused_imports)]
 use multiversx_sc::imports::*;
-use types::supply_context::SupplyContext;
+use types::supply_context::StakingPoolContext;
 
 pub mod constants;
 pub mod esdt;
@@ -94,9 +94,45 @@ pub trait KosonStakingPool:
         (self.get_pool_index(), BigUint::from(POOL_INDEX_DENOMINATOR))
     }
 
-    #[view(getSupplyContext)]
-    fn supply_context(&self) -> SupplyContext<Self::Api> {
-        todo!()
+    #[view(getStakingPoolContext)]
+    fn supply_context(&self) -> StakingPoolContext<Self::Api> {
+        let reward_index = self.get_pool_index();
+        let staked_koson_token_id = self.staked_koson_token_id().get();
+        let unbonding_koson_token_id = self.unbonding_koson_token_id().get();
+        let unbonding_epochs = self.unbonding_time_penalty().get();
+        let max_claim_fee = BigUint::from(UNBONDING_MAX_FEE);
+
+        let mut token_balances = ManagedVec::new();
+
+        token_balances.push(EsdtTokenPayment::new(
+            staked_koson_token_id.clone(),
+            0u64,
+            self.staked_koson_supply(&staked_koson_token_id).get(),
+        ));
+
+        token_balances.push(EsdtTokenPayment::new(
+            unbonding_koson_token_id.clone(),
+            0u64,
+            self.staked_koson_supply(&unbonding_koson_token_id).get(),
+        ));
+
+        // get all koson type tokens
+        for token_id in self.koson_token_ids().iter() {
+            let token_balance = self
+                .blockchain()
+                .get_sc_balance(&EgldOrEsdtTokenIdentifier::esdt(token_id.clone()), 0u64);
+
+            token_balances.push(EsdtTokenPayment::new(token_id, 0u64, token_balance));
+        }
+
+        StakingPoolContext {
+            reward_index,
+            token_balances,
+            max_claim_fee,
+            unbonding_epochs,
+            staked_koson_token_identifier: staked_koson_token_id,
+            unbonding_koson_token_identifier: unbonding_koson_token_id,
+        }
     }
 
     #[view(getStorageKosonSupply)]

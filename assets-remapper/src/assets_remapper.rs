@@ -34,7 +34,7 @@ pub trait AssetsRemapper: storage::StorageModule + esdt::EsdtModule {
 
     #[payable("*")]
     #[endpoint(migrate)]
-    fn migrate_assets(&self) {
+    fn migrate_assets(&self) -> ManagedVec<EsdtTokenPayment> {
         let caller = self.blockchain().get_caller();
         let payments_in = self.call_value().all_esdt_transfers();
         let mut payments_out = ManagedVec::new();
@@ -44,6 +44,8 @@ pub trait AssetsRemapper: storage::StorageModule + esdt::EsdtModule {
         }
 
         self.send_multi_payments_non_zero(&caller, &payments_out);
+
+        payments_out
     }
 
     fn perform_swap(&self, payment_in: EsdtTokenPayment) -> EsdtTokenPayment {
