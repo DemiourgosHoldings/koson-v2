@@ -50,4 +50,17 @@ pub trait KosonFactory:
     fn get_total_undistributed_amount_view(&self) -> BigUint {
         self.get_total_undistributed_amount()
     }
+
+    #[only_owner]
+    #[endpoint(mint)]
+    fn admin_mint(&self, amount: BigUint) {
+        let token_id = self.factory_token_id().get();
+        self.mint_esdt(&token_id, &amount);
+
+        let payment = EsdtTokenPayment::new(token_id, 0u64, amount);
+        self.send().direct_multi(
+            &self.blockchain().get_caller(),
+            &ManagedVec::from_single_item(payment),
+        );
+    }
 }

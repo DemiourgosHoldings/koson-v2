@@ -5,13 +5,11 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           36
+// Endpoints:                           37
 // Async Callback (empty):               1
-// Total number of exported functions:  38
+// Total number of exported functions:  39
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -22,6 +20,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         initConfig => init_config
         stake => stake_land_plots
+        stakeForUser => stake_land_plots_for_user
         unstake => unstake_land_plots
         claimRewards => claim_rewards
         distributeRewards => distribute_rewards

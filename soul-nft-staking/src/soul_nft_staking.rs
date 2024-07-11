@@ -58,6 +58,7 @@ pub trait SoulNftStaking:
 
     #[only_owner]
     #[endpoint(setupScores)]
+    #[allow_multiple_var_args]
     fn setup_scores(
         &self,
         token_ids: MultiValueManagedVecCounted<TokenIdentifier>,

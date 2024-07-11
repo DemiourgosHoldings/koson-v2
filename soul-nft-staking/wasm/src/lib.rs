@@ -5,13 +5,11 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           35
+// Endpoints:                           41
 // Async Callback (empty):               1
-// Total number of exported functions:  37
+// Total number of exported functions:  43
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -21,10 +19,15 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         initConfig => init_config
+        setupScores => setup_scores
         stake => stake_souls
+        stakeForUser => stake_souls_for_user
         unstake => unstake_souls
         claimRewards => claim_rewards
         distributeRewards => distribute_rewards
+        getUserScore => get_user_score
+        getAggregatedScore => get_aggregated_score
+        getStakeEpoch => get_stake_epoch
         getOuroTokenId => ouro_token_id
         getUsddTokenId => usdd_token_id
         getUsdcTokenId => usdc_token_id
@@ -40,9 +43,10 @@ multiversx_sc_wasm_adapter::endpoints! {
         getUserUnclaimedRewards => user_unclaimed_rewards
         getStakedSouls => staked_souls
         getSoulStakeEpoch => soul_stake_epoch
+        getTotalUnclaimedReward => get_total_unclaimed_reward
         getUnclaimedRewardRate => get_unclaimed_reward_rate
-        getRewardRate => current_reward_rate
-        getLastClaimedRewardRate => last_claimed_reward_rate
+        getCurrentRewardRate => get_current_reward_rate
+        getLastClaimedRewardRate => get_last_claimed_reward_rate
         getUnstakeFeePerScoreKoson => get_unstake_fee_per_score_koson
         setPairInfo => set_pair_info
         removePairInfo => remove_pair_info

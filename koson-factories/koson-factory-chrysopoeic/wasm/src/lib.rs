@@ -5,13 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
+// Upgrade:                              1
 // Endpoints:                           10
 // Async Callback:                       1
-// Total number of exported functions:  12
+// Total number of exported functions:  13
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -23,6 +22,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         upgrade => upgrade
         setDistributionList => set_distribution_list
         distribute => distribute
+        getUndistributedAmount => get_total_undistributed_amount_view
         getDistributionList => distribution_list
         getLastDistributionEpoch => last_distribution_epoch
         getCurrentSupply => current_supply

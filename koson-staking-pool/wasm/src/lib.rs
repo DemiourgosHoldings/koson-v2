@@ -5,13 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           16
+// Upgrade:                              1
+// Endpoints:                           21
 // Async Callback:                       1
-// Total number of exported functions:  18
+// Total number of exported functions:  24
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -23,10 +22,16 @@ multiversx_sc_wasm_adapter::endpoints! {
         upgrade => upgrade
         initConfig => init_config
         stake => stake_koson
+        stakeForUser => stake_koson_for_user
         startUnstake => unstake_koson
         claimUnstaked => claim_unstaked
         distributeReward => distribute_reward
+        getPoolIndex => get_pool_index_view
+        getStakingPoolContext => supply_context
+        getStorageKosonSupply => get_storage_koson_supply
+        getStorageStakedKosonSupply => get_storage_staked_koson_supply
         issue => issue_token
+        setTokenId => set_token_id
         getKosonTokenId => koson_token_ids
         getStakedKosonTokenId => staked_koson_token_id
         getUnbondingKosonTokenId => unbonding_koson_token_id

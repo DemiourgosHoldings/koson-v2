@@ -11,7 +11,16 @@ pub trait EsdtModule: crate::storage::StorageModule {
     #[payable("EGLD")]
     #[endpoint(issue)]
     fn issue_token(&self, token_display_name: ManagedBuffer, token_ticker: ManagedBuffer, key: u8) {
-        require!(self.staked_koson_token_id().is_empty(), ERR_ALREADY_ISSUED);
+        match key {
+            STAKED_KOSON_KEY => {
+                require!(self.staked_koson_token_id().is_empty(), ERR_ALREADY_ISSUED)
+            }
+            UNBONDING_KOSON_KEY => require!(
+                self.unbonding_koson_token_id().is_empty(),
+                ERR_ALREADY_ISSUED
+            ),
+            _ => sc_panic!("Invalid issuance key"),
+        };
 
         let issue_cost = self.call_value().egld_value();
 
@@ -28,9 +37,8 @@ pub trait EsdtModule: crate::storage::StorageModule {
                 },
                 18,
             )
-            .async_call()
             .with_callback(self.callbacks().issue_token_callback(key))
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[only_owner]

@@ -148,6 +148,10 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             total_staked_koson_supply += self.staked_koson_supply(token_id).get();
         }
 
+        if total_staked_koson_supply == 0 {
+            return BigUint::from(POOL_INDEX_DENOMINATOR);
+        }
+
         total_koson_supply * POOL_INDEX_DENOMINATOR / total_staked_koson_supply
     }
 

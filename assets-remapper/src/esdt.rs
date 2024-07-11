@@ -9,6 +9,7 @@ pub trait EsdtModule: crate::storage::StorageModule {
     #[only_owner]
     #[payable("EGLD")]
     #[endpoint(issue)]
+    #[allow_multiple_var_args]
     fn issue_token(
         &self,
         token_display_name: ManagedBuffer,
@@ -38,7 +39,6 @@ pub trait EsdtModule: crate::storage::StorageModule {
                 token_type.clone(),
                 num_decimals,
             )
-            .async_call()
             .with_callback(self.callbacks().issue_token_callback(
                 target_token_id,
                 token_type,
@@ -46,7 +46,7 @@ pub trait EsdtModule: crate::storage::StorageModule {
                 ratio_numerator,
                 ratio_denominator,
             ))
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[callback]
@@ -82,6 +82,7 @@ pub trait EsdtModule: crate::storage::StorageModule {
         }
     }
 
+    #[payable("*")]
     #[only_owner]
     #[endpoint(mapTokens)]
     fn map_tokens(
@@ -93,6 +94,18 @@ pub trait EsdtModule: crate::storage::StorageModule {
         ratio_numerator: BigUint,
         ratio_denominator: BigUint,
     ) {
+        let payments = self.call_value().all_esdt_transfers();
+        let disable_mint = payments.len() > 0;
+
+        if disable_mint {
+            for payment in payments.iter() {
+                require!(
+                    payment.token_identifier == token_id_out,
+                    "Invalid payment token"
+                );
+            }
+        }
+
         self.token_identifier_map(&token_id_in).set(&token_id_out);
         self.token_identifier_details(&token_id_out)
             .set(TokenIdentifierDetails::new(
@@ -101,6 +114,7 @@ pub trait EsdtModule: crate::storage::StorageModule {
                 num_decimals,
                 ratio_numerator,
                 ratio_denominator,
+                disable_mint,
             ));
     }
 

@@ -8,6 +8,7 @@ pub struct TokenIdentifierDetails<M: ManagedTypeApi> {
     pub num_decimals: usize,
     pub ratio_numerator: BigUint<M>,
     pub ratio_denominator: BigUint<M>,
+    pub disable_mint: bool,
 }
 
 impl<M: ManagedTypeApi> TokenIdentifierDetails<M> {
@@ -17,6 +18,7 @@ impl<M: ManagedTypeApi> TokenIdentifierDetails<M> {
         num_decimals: usize,
         ratio_numerator: BigUint<M>,
         ratio_denominator: BigUint<M>,
+        disable_mint: bool,
     ) -> Self {
         Self {
             token_identifier,
@@ -24,6 +26,7 @@ impl<M: ManagedTypeApi> TokenIdentifierDetails<M> {
             num_decimals,
             ratio_numerator,
             ratio_denominator,
+            disable_mint,
         }
     }
 

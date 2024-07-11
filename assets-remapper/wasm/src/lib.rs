@@ -5,13 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            1
-// Async Callback (empty):               1
-// Total number of exported functions:   3
+// Upgrade:                              1
+// Endpoints:                            6
+// Async Callback:                       1
+// Total number of exported functions:   9
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -21,7 +20,13 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
+        mint => mint_nft_sft_endpoint
+        migrate => migrate_assets
+        getTokenIdentifierMapValue => token_identifier_map
+        getTokenIdentifierDetails => token_identifier_details
+        issue => issue_token
+        mapTokens => map_tokens
     )
 }
 
-multiversx_sc_wasm_adapter::async_callback_empty! {}
+multiversx_sc_wasm_adapter::async_callback! { assets_remapper }

@@ -63,17 +63,24 @@ pub trait AssetsRemapper: storage::StorageModule + esdt::EsdtModule {
         token_id_out_details: TokenIdentifierDetails<Self::Api>,
     ) -> EsdtTokenPayment {
         let amount_out = token_id_out_details.get_swap_amount(&payment.amount);
-        self.burn_payment(&payment);
-
-        match token_id_out_details.token_type {
-            EsdtTokenType::Fungible => {
-                self.mint_esdt(&token_id_out_details.token_identifier, &amount_out)
+        if !token_id_out_details.disable_mint {
+            self.burn_payment(&payment);
+            match token_id_out_details.token_type {
+                EsdtTokenType::Fungible => {
+                    self.mint_esdt(&token_id_out_details.token_identifier, &amount_out)
+                }
+                _ => EsdtTokenPayment::new(
+                    token_id_out_details.token_identifier,
+                    payment.token_nonce,
+                    amount_out,
+                ),
             }
-            _ => EsdtTokenPayment::new(
+        } else {
+            EsdtTokenPayment::new(
                 token_id_out_details.token_identifier,
                 payment.token_nonce,
                 amount_out,
-            ),
+            )
         }
     }
 
