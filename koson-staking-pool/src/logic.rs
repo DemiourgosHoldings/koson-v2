@@ -17,6 +17,9 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             staked_koson_amount_to_send += self.process_single_payment_stake(&payment);
         }
 
+        let staked_koson_amount_to_send =
+            self.apply_staking_index_to_stake_amount(&staked_koson_amount_to_send);
+
         self.mint_esdt(
             &self.staked_koson_token_id().get(),
             &staked_koson_amount_to_send,
@@ -27,6 +30,10 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             0u64,
             staked_koson_amount_to_send,
         )
+    }
+
+    fn apply_staking_index_to_stake_amount(&self, total_stake_amount: &BigUint) -> BigUint {
+        total_stake_amount * POOL_INDEX_DENOMINATOR / self.get_pool_index()
     }
 
     fn send_payment_non_zero(&self, receiver: &ManagedAddress, payment: EsdtTokenPayment) {
