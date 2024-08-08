@@ -1,6 +1,6 @@
 #![no_std]
 
-use constants::config::{POOL_INDEX_DENOMINATOR, UNBONDING_MAX_FEE};
+use constants::config::POOL_INDEX_DENOMINATOR;
 #[allow(unused_imports)]
 use multiversx_sc::imports::*;
 use types::{supply_context::StakingPoolContext, wrapped_payment::WrappedPayment};
@@ -27,12 +27,14 @@ pub trait KosonStakingPool:
     fn init_config(
         &self,
         unbonding_time_penalty: u64,
+        unbonding_max_fee: u64,
         koson_token_identifiers: MultiValueManagedVec<TokenIdentifier>,
     ) {
         for token_id in koson_token_identifiers.iter() {
             self.koson_token_ids().insert(token_id.clone_value());
-            self.unbonding_time_penalty().set(unbonding_time_penalty);
         }
+        self.unbonding_time_penalty().set(unbonding_time_penalty);
+        self.unbonding_max_fee().set(unbonding_max_fee);
     }
 
     #[payable("*")]
@@ -100,7 +102,8 @@ pub trait KosonStakingPool:
         let staked_koson_token_id = self.staked_koson_token_id().get();
         let unbonding_koson_token_id = self.unbonding_koson_token_id().get();
         let unbonding_epochs = self.unbonding_time_penalty().get();
-        let max_claim_fee = BigUint::from(UNBONDING_MAX_FEE);
+        let unbonding_max_fee = self.unbonding_max_fee().get();
+        let max_claim_fee = BigUint::from(unbonding_max_fee);
 
         let mut token_balances = ManagedVec::new();
 
@@ -149,11 +152,13 @@ pub trait KosonStakingPool:
     fn get_unbonding_fee_view(&self, amount_in: BigUint, mint_epoch: u64) -> (BigUint, BigUint) {
         let wp = WrappedPayment { mint_epoch };
         let current_block_epoch = self.blockchain().get_block_epoch();
+        let unbonding_max_fee = self.unbonding_max_fee().get();
 
         let (resulting_amount, fee) = wp.compute_fee(
             &amount_in,
             self.unbonding_time_penalty().get(),
             current_block_epoch,
+            unbonding_max_fee,
         );
 
         (resulting_amount, fee)

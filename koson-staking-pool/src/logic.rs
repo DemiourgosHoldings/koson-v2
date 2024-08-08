@@ -82,6 +82,7 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         payments_in: &ManagedVec<EsdtTokenPayment>,
     ) -> ManagedVec<EsdtTokenPayment> {
         let unbonding_koson_token_id = self.unbonding_koson_token_id().get();
+        let unbonding_max_fee = self.unbonding_max_fee().get();
         let total_staked_koson_supply = self
             .staked_koson_supply(&self.staked_koson_token_id().get())
             .get()
@@ -103,6 +104,7 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
                 &payment.amount,
                 self.unbonding_time_penalty().get(),
                 self.blockchain().get_block_epoch(),
+                unbonding_max_fee,
             );
 
             let unbonded_payments =
