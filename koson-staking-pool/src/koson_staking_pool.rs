@@ -3,7 +3,7 @@
 use constants::config::{POOL_INDEX_DENOMINATOR, UNBONDING_MAX_FEE};
 #[allow(unused_imports)]
 use multiversx_sc::imports::*;
-use types::supply_context::StakingPoolContext;
+use types::{supply_context::StakingPoolContext, wrapped_payment::WrappedPayment};
 
 pub mod constants;
 pub mod esdt;
@@ -143,5 +143,19 @@ pub trait KosonStakingPool:
     #[view(getStorageStakedKosonSupply)]
     fn get_storage_staked_koson_supply(&self, staked_koson_token_id: TokenIdentifier) -> BigUint {
         self.staked_koson_supply(&staked_koson_token_id).get()
+    }
+
+    #[view(getUnbondingFeeAndResultingAmount)]
+    fn get_unbonding_fee_view(&self, amount_in: BigUint, mint_epoch: u64) -> (BigUint, BigUint) {
+        let wp = WrappedPayment { mint_epoch };
+        let current_block_epoch = self.blockchain().get_block_epoch();
+
+        let (resulting_amount, fee) = wp.compute_fee(
+            &amount_in,
+            self.unbonding_time_penalty().get(),
+            current_block_epoch,
+        );
+
+        (resulting_amount, fee)
     }
 }

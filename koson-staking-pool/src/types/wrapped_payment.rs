@@ -26,8 +26,12 @@ impl WrappedPayment {
         }
 
         let feeable_epochs = no_fee_epoch - current_block_epoch;
-        let fee = amount * feeable_epochs / unbonding_time_penalty * UNBONDING_MAX_FEE
-            / UNBONDING_FEE_DENOMINATOR;
+        // let fee = amount * feeable_epochs / unbonding_time_penalty * UNBONDING_MAX_FEE
+        //     / UNBONDING_FEE_DENOMINATOR;
+
+        let max_fee = amount * UNBONDING_MAX_FEE / UNBONDING_FEE_DENOMINATOR;
+
+        let fee = max_fee * feeable_epochs / unbonding_time_penalty;
 
         (amount - &fee, fee)
     }

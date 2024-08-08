@@ -193,6 +193,9 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             let supply = self.koson_supply(&koson_token_id).get();
 
             let amount_to_send = token_amount_in * &supply / total_staked_koson_supply;
+            if amount_to_send == 0 {
+                continue;
+            }
             payments_out.push(EsdtTokenPayment::new(koson_token_id, 0u64, amount_to_send));
         }
 
