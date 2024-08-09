@@ -1,0 +1,24 @@
+[package]
+name = "simple-asset-minter"
+version = "0.0.0"
+authors = ["you"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/simple_asset_minter.rs"
+
+[dependencies.multiversx-sc]
+version = "0.50.1"
+
+[dev-dependencies]
+num-bigint = "0.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.50.1"
+
+[workspace]
+members = [
+    ".",
+    "meta",
+]

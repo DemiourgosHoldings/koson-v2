@@ -5,9 +5,10 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           41
+// Upgrade:                              1
+// Endpoints:                           42
 // Async Callback (empty):               1
-// Total number of exported functions:  43
+// Total number of exported functions:  45
 
 #![no_std]
 
@@ -18,6 +19,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     soul_nft_staking
     (
         init => init
+        upgrade => upgrade
         initConfig => init_config
         setupScores => setup_scores
         stake => stake_souls
@@ -28,6 +30,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getUserScore => get_user_score
         getAggregatedScore => get_aggregated_score
         getStakeEpoch => get_stake_epoch
+        getStakingContext => get_staking_context
         getOuroTokenId => ouro_token_id
         getUsddTokenId => usdd_token_id
         getUsdcTokenId => usdc_token_id

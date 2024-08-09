@@ -33,6 +33,11 @@ pub trait AssetsRemapper: storage::StorageModule + esdt::EsdtModule {
     }
 
     #[payable("*")]
+    #[only_owner]
+    #[endpoint(deposit)]
+    fn deposit(&self) {}
+
+    #[payable("*")]
     #[endpoint(migrate)]
     fn migrate_assets(&self) -> ManagedVec<EsdtTokenPayment> {
         let caller = self.blockchain().get_caller();
@@ -76,11 +81,16 @@ pub trait AssetsRemapper: storage::StorageModule + esdt::EsdtModule {
                 ),
             }
         } else {
-            EsdtTokenPayment::new(
-                token_id_out_details.token_identifier,
-                payment.token_nonce,
-                amount_out,
-            )
+            match token_id_out_details.token_type {
+                EsdtTokenType::Fungible => {
+                    EsdtTokenPayment::new(token_id_out_details.token_identifier, 0, amount_out)
+                }
+                _ => EsdtTokenPayment::new(
+                    token_id_out_details.token_identifier,
+                    payment.token_nonce,
+                    amount_out,
+                ),
+            }
         }
     }
 

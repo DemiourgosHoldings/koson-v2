@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           12
+// Endpoints:                           13
 // Async Callback:                       1
-// Total number of exported functions:  15
+// Total number of exported functions:  16
 
 #![no_std]
 
@@ -20,6 +20,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
+        initConfig => init_config
         setDistributionList => set_distribution_list
         distribute => distribute
         getUndistributedAmount => get_total_undistributed_amount_view

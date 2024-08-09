@@ -4,6 +4,7 @@ use constants::errors::ERR_NOTHING_TO_CLAIM;
 use logic::UnstakeRequest;
 
 multiversx_sc::imports!();
+multiversx_sc::derive_imports!();
 
 pub mod constants;
 pub mod logic;
@@ -23,6 +24,9 @@ pub trait LandPlotStaking:
     #[init]
     fn init(&self) {}
 
+    #[upgrade]
+    fn upgrade(&self) {}
+
     #[endpoint(initConfig)]
     fn init_config(
         &self,
@@ -32,6 +36,7 @@ pub trait LandPlotStaking:
         usdc_token_id: TokenIdentifier,
         wegld_token_id: TokenIdentifier,
         koson_token_id: TokenIdentifier,
+        reward_token_id: TokenIdentifier,
         oracle_registry_address: ManagedAddress,
     ) {
         self.land_plot_sft_token_id().set(&land_plots_token_id);
@@ -40,7 +45,7 @@ pub trait LandPlotStaking:
         self.usdc_token_id().set(&usdc_token_id);
         self.wegld_token_id().set(&wegld_token_id);
         self.koson_token_id().set(&koson_token_id);
-        self.reward_token_id().set(&koson_token_id);
+        self.reward_token_id().set(&reward_token_id);
         self.set_oracle_registry_address(oracle_registry_address);
     }
 
@@ -141,4 +146,59 @@ pub trait LandPlotStaking:
     fn get_stake_epoch(&self, user: ManagedAddress, nonce: u64) -> u64 {
         self.stake_epoch(&user, nonce).get()
     }
+
+    #[view(getStakingContext)]
+    fn get_staking_context(&self, user: ManagedAddress) -> StakingContext<Self::Api> {
+        let user_score = self.user_aggregated_land_plot_scores(&user).get();
+        let aggregated_score = self.get_aggregated_score();
+        let land_plot_token_id = self.land_plot_sft_token_id().get();
+
+        let mut staked_assets = ManagedVec::new();
+        for nonce in 1..=5u64 {
+            let stake_storage = self.staked_land_plots(&user, nonce);
+            if stake_storage.is_empty() {
+                continue;
+            }
+            let stake_epoch = self.stake_epoch(&user, nonce).get();
+
+            // TODO: implement this on mainnet
+            let unstake_fee = BigUint::from(1_000_000_000_000_000_000u64);
+            let staked_nft =
+                EsdtTokenPayment::new(land_plot_token_id.clone(), nonce, stake_storage.get());
+
+            staked_assets.push(StakedNftViewType {
+                nft: staked_nft,
+                stake_epoch,
+                unstake_fee,
+            });
+        }
+
+        let pending_rewards = self.get_total_unclaimed_reward(user.clone());
+
+        StakingContext {
+            user_score,
+            aggregated_score,
+            staked_assets,
+            pending_rewards: ManagedVec::from_single_item(EsdtTokenPayment::new(
+                self.reward_token_id().get(),
+                0u64,
+                pending_rewards,
+            )),
+        }
+    }
+}
+
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi)]
+pub struct StakingContext<M: ManagedTypeApi> {
+    pub user_score: BigUint<M>,
+    pub aggregated_score: BigUint<M>,
+    pub staked_assets: ManagedVec<M, StakedNftViewType<M>>,
+    pub pending_rewards: ManagedVec<M, EsdtTokenPayment<M>>,
+}
+
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, ManagedVecItem)]
+pub struct StakedNftViewType<M: ManagedTypeApi> {
+    nft: EsdtTokenPayment<M>,
+    stake_epoch: u64,
+    unstake_fee: BigUint<M>,
 }

@@ -193,6 +193,7 @@ impl KosonV2NftStakingContractState {
                         managed_token_id!(USDC_TOKEN_ID),
                         managed_token_id!(WEGLD_TOKEN_ID),
                         managed_token_id!(KOSON_TOKEN_ID),
+                        managed_token_id!(KOSON_TOKEN_ID),
                         managed_address!(&AddressValue::from(ORACLE_SC_ADDRESS_EXPR).to_address()),
                         managed_token_id!(DEATH_SOUL_TOKEN_ID),
                         origin_soul_token_ids,

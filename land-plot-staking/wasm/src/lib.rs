@@ -5,9 +5,10 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           37
+// Upgrade:                              1
+// Endpoints:                           38
 // Async Callback (empty):               1
-// Total number of exported functions:  39
+// Total number of exported functions:  41
 
 #![no_std]
 
@@ -18,6 +19,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     land_plot_staking
     (
         init => init
+        upgrade => upgrade
         initConfig => init_config
         stake => stake_land_plots
         stakeForUser => stake_land_plots_for_user
@@ -27,6 +29,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getUserScore => get_user_score
         getAggregatedScore => get_aggregated_score
         getStakeEpoch => get_stake_epoch
+        getStakingContext => get_staking_context
         getOuroTokenId => ouro_token_id
         getUsddTokenId => usdd_token_id
         getUsdcTokenId => usdc_token_id
