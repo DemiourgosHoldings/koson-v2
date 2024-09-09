@@ -9,13 +9,13 @@ publish = false
 path = "src/soul_nft_staking.rs"
 
 [dependencies.multiversx-sc]
-version = "0.47.3"
+version = "0.50.5"
 
 [dev-dependencies]
 num-bigint = "0.4"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.47.3"
+version = "0.50.5"
 
 [dev-dependencies.umbrella-oracle-mock]
 path = "../mocks/umbrella_oracle_mock"

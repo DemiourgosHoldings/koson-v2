@@ -31,7 +31,7 @@ pub trait KosonFactoryFacade: factory_interactor::FactoryInteractor {
         // Universal forge rewards are based on the other factories daily emissions.
         // If another factory goes first, the universal forge will distribute 0 rewards for that factory.
 
-        let mut factory_address_list = ManagedVec::new();
+        let mut factory_address_list: ManagedVec<Self::Api, ManagedAddress> = ManagedVec::new();
         factory_address_list.push(self.universal_forge_address().get());
         factory_address_list.push(self.chrysopoeic_forge_address().get());
 
@@ -40,7 +40,7 @@ pub trait KosonFactoryFacade: factory_interactor::FactoryInteractor {
         let gas_per_distribution = total_gas_fee / factory_address_list.len() as u64;
 
         for address in factory_address_list.iter() {
-            self.trigger_distribute_rewards(address, gas_per_distribution);
+            self.trigger_distribute_rewards(address.clone_value(), gas_per_distribution);
         }
     }
 

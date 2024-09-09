@@ -5,13 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           16
+// Upgrade:                              1
+// Endpoints:                           23
 // Async Callback:                       1
-// Total number of exported functions:  18
+// Total number of exported functions:  26
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -23,16 +22,24 @@ multiversx_sc_wasm_adapter::endpoints! {
         upgrade => upgrade
         initConfig => init_config
         stake => stake_koson
+        stakeForUser => stake_koson_for_user
         startUnstake => unstake_koson
         claimUnstaked => claim_unstaked
         distributeReward => distribute_reward
+        getPoolIndex => get_pool_index_view
+        getStakingPoolContext => supply_context
+        getStorageKosonSupply => get_storage_koson_supply
+        getStorageStakedKosonSupply => get_storage_staked_koson_supply
+        getUnbondingFeeAndResultingAmount => get_unbonding_fee_view
         issue => issue_token
+        setTokenId => set_token_id
         getKosonTokenId => koson_token_ids
         getStakedKosonTokenId => staked_koson_token_id
         getUnbondingKosonTokenId => unbonding_koson_token_id
         getKosonSupply => koson_supply
         getStakedKosonSupply => staked_koson_supply
         getUnbondingTimePenalty => unbonding_time_penalty
+        getUnbondingMaxFee => unbonding_max_fee
         getUnclaimedRewardRate => get_unclaimed_reward_rate
         getCurrentRewardRate => get_current_reward_rate
         getLastClaimedRewardRate => get_last_claimed_reward_rate

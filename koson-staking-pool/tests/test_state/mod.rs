@@ -16,6 +16,8 @@ pub const KOSON_PRIMORDIAL_TOKEN_ID: &str = "PKOSON-123456";
 pub const KOSON_REWARD_BEARING_TOKEN: &str = "RKOSON-123456";
 pub const KOSON_UNBONDING_META_TOKEN: &str = "UKOSON-123456";
 
+pub const UNBONDING_MAX_FEE: u64 = 90; // 90%
+
 pub const UNBONDING_TIME_PENALTY: u64 = 100; // 100 days
 
 fn world() -> ScenarioWorld {

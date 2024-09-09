@@ -2,7 +2,8 @@ use super::{
     world, KosonIndexStakingPoolContract, KosonStakingPoolState, INITIAL_ESDT_BALANCE,
     INVALID_ESDT_TOKEN_ID, KOSON_ANCIENT_TOKEN_ID, KOSON_ESOTERIC_TOKEN_ID,
     KOSON_PRIMORDIAL_TOKEN_ID, KOSON_REWARD_BEARING_TOKEN, KOSON_STAKING_SC_ADDRESS,
-    KOSON_UNBONDING_META_TOKEN, OWNER_ADDRESS_EXPR, UNBONDING_TIME_PENALTY, USER_1_ADDRESS_EXPR,
+    KOSON_UNBONDING_META_TOKEN, OWNER_ADDRESS_EXPR, UNBONDING_MAX_FEE, UNBONDING_TIME_PENALTY,
+    USER_1_ADDRESS_EXPR,
 };
 
 use multiversx_sc::types::{EsdtTokenPayment, ManagedVec, MultiValueManagedVec};
@@ -124,12 +125,16 @@ impl KosonStakingPoolState {
         koson_token_identifiers.push(managed_token_id!(KOSON_PRIMORDIAL_TOKEN_ID));
         koson_token_identifiers.push(managed_token_id!(KOSON_ANCIENT_TOKEN_ID));
 
-        self.world.sc_call(
-            ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
-                self.contract
-                    .init_config(UNBONDING_TIME_PENALTY, koson_token_identifiers),
-            ),
-        );
+        self.world
+            .sc_call(
+                ScCallStep::new()
+                    .from(OWNER_ADDRESS_EXPR)
+                    .call(self.contract.init_config(
+                        UNBONDING_TIME_PENALTY,
+                        UNBONDING_MAX_FEE,
+                        koson_token_identifiers,
+                    )),
+            );
 
         self.world
             .sc_call(

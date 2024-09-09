@@ -21,9 +21,8 @@ pub trait EsdtModule: crate::storage::StorageModule {
                 EsdtTokenType::Fungible,
                 18,
             )
-            .async_call()
             .with_callback(self.callbacks().issue_token_callback())
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[only_owner]

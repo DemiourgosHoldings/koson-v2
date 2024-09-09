@@ -25,4 +25,8 @@ pub trait StorageModule {
     #[view(getUnbondingTimePenalty)]
     #[storage_mapper("unbonding_time_penalty")]
     fn unbonding_time_penalty(&self) -> SingleValueMapper<u64>;
+
+    #[view(getUnbondingMaxFee)]
+    #[storage_mapper("unbonding_max_fee")]
+    fn unbonding_max_fee(&self) -> SingleValueMapper<u64>;
 }

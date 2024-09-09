@@ -1,4 +1,4 @@
-use crate::constants::config::{UNBONDING_FEE_DENOMINATOR, UNBONDING_MAX_FEE};
+use crate::constants::config::UNBONDING_FEE_DENOMINATOR;
 
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
@@ -19,6 +19,7 @@ impl WrappedPayment {
         amount: &BigUint<M>,
         unbonding_time_penalty: u64,
         current_block_epoch: u64,
+        unbonding_max_fee: u64,
     ) -> (BigUint<M>, BigUint<M>) {
         let no_fee_epoch = self.mint_epoch + unbonding_time_penalty;
         if current_block_epoch >= no_fee_epoch {
@@ -26,8 +27,12 @@ impl WrappedPayment {
         }
 
         let feeable_epochs = no_fee_epoch - current_block_epoch;
-        let fee = amount * feeable_epochs / unbonding_time_penalty * UNBONDING_MAX_FEE
-            / UNBONDING_FEE_DENOMINATOR;
+        // let fee = amount * feeable_epochs / unbonding_time_penalty * UNBONDING_MAX_FEE
+        //     / UNBONDING_FEE_DENOMINATOR;
+
+        let max_fee = amount * unbonding_max_fee / UNBONDING_FEE_DENOMINATOR;
+
+        let fee = max_fee * feeable_epochs / unbonding_time_penalty;
 
         (amount - &fee, fee)
     }

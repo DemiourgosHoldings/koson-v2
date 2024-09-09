@@ -5,13 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            5
+// Upgrade:                              1
+// Endpoints:                            4
 // Async Callback (empty):               1
 // Total number of exported functions:   7
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -21,10 +20,10 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
-        addFactoryAddresses => add_factory_addresses
-        removeFactoryAddresses => remove_factory_addresses
+        initConfig => init_config
         distribute => distribute_factory_rewards
-        getFactoryAddressList => factory_address_list
+        getChrysopoeicForgeAddress => chrysopoeic_forge_address
+        getUniversalForgeAddress => universal_forge_address
     )
 }
 

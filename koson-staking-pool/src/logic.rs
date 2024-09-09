@@ -17,6 +17,9 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             staked_koson_amount_to_send += self.process_single_payment_stake(&payment);
         }
 
+        let staked_koson_amount_to_send =
+            self.apply_staking_index_to_stake_amount(&staked_koson_amount_to_send);
+
         self.mint_esdt(
             &self.staked_koson_token_id().get(),
             &staked_koson_amount_to_send,
@@ -27,6 +30,10 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             0u64,
             staked_koson_amount_to_send,
         )
+    }
+
+    fn apply_staking_index_to_stake_amount(&self, total_stake_amount: &BigUint) -> BigUint {
+        total_stake_amount * POOL_INDEX_DENOMINATOR / self.get_pool_index()
     }
 
     fn send_payment_non_zero(&self, receiver: &ManagedAddress, payment: EsdtTokenPayment) {
@@ -82,6 +89,7 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
         payments_in: &ManagedVec<EsdtTokenPayment>,
     ) -> ManagedVec<EsdtTokenPayment> {
         let unbonding_koson_token_id = self.unbonding_koson_token_id().get();
+        let unbonding_max_fee = self.unbonding_max_fee().get();
         let total_staked_koson_supply = self
             .staked_koson_supply(&self.staked_koson_token_id().get())
             .get()
@@ -103,6 +111,7 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
                 &payment.amount,
                 self.unbonding_time_penalty().get(),
                 self.blockchain().get_block_epoch(),
+                unbonding_max_fee,
             );
 
             let unbonded_payments =
@@ -148,6 +157,10 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             total_staked_koson_supply += self.staked_koson_supply(token_id).get();
         }
 
+        if total_staked_koson_supply == 0 {
+            return BigUint::from(POOL_INDEX_DENOMINATOR);
+        }
+
         total_koson_supply * POOL_INDEX_DENOMINATOR / total_staked_koson_supply
     }
 
@@ -189,6 +202,9 @@ pub trait LogicModule: crate::storage::StorageModule + crate::esdt::EsdtModule {
             let supply = self.koson_supply(&koson_token_id).get();
 
             let amount_to_send = token_amount_in * &supply / total_staked_koson_supply;
+            if amount_to_send == 0 {
+                continue;
+            }
             payments_out.push(EsdtTokenPayment::new(koson_token_id, 0u64, amount_to_send));
         }
 

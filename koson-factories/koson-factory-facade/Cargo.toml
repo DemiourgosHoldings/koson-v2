@@ -9,7 +9,7 @@ publish = false
 path = "src/koson_factory_facade.rs"
 
 [dependencies.multiversx-sc]
-version = "0.47.3"
+version = "0.50.5"
 
 [dependencies.koson-factory-chrysopoeic]
 path = "../koson-factory-chrysopoeic"
@@ -18,7 +18,7 @@ path = "../koson-factory-chrysopoeic"
 num-bigint = "0.4"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.47.3"
+version = "0.50.5"
 
 [workspace]
 members = [
